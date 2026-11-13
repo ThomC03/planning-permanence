@@ -14,13 +14,12 @@
   .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 18px; margin-bottom: 16px; }
   .card h2 { margin: 0 0 12px; font-size: 1.05rem; }
   label { display: block; font-size: .85rem; color: var(--muted); margin-bottom: 4px; }
-  input, select, textarea { width: 100%; padding: 9px 10px; border: 1px solid var(--border); border-radius: 8px; font-size: .95rem; background: #fff; }
+  input, select { padding: 9px 10px; border: 1px solid var(--border); border-radius: 8px; font-size: .95rem; background: #fff; }
   .row { display: flex; gap: 10px; flex-wrap: wrap; }
   .row > * { flex: 1; min-width: 140px; }
   button { background: var(--accent); color: #fff; border: none; border-radius: 8px; padding: 10px 16px; font-size: .95rem; cursor: pointer; }
   button.secondary { background: #e5e7eb; color: var(--text); }
   button.danger { background: var(--no); }
-  button:disabled { opacity: .5; cursor: not-allowed; }
   .msg { padding: 10px 12px; border-radius: 8px; margin: 10px 0; font-size: .9rem; display: none; }
   .msg.error { background: #fee2e2; color: #991b1b; display: block; }
   .msg.info { background: #dbeafe; color: #1e40af; display: block; }
@@ -30,16 +29,29 @@
   .badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: .8rem; font-weight: 600; }
   .badge.ok { background: #dcfce7; color: #166534; }
   .badge.no { background: #fee2e2; color: #991b1b; }
-  .slot { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--border); }
-  .slot:last-child { border-bottom: none; }
-  .slot input[type="checkbox"] { width: auto; }
-  .slot .name { font-weight: 600; flex: 1; }
   .muted { color: var(--muted); font-size: .85rem; }
   .tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
   .tabs button { background: #e5e7eb; color: var(--text); }
   .tabs button.active { background: var(--accent); color: #fff; }
   .hidden { display: none; }
-  .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; align-items: center; }
+
+  /* Calendrier */
+  .cal-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+  .cal-head .nav { display: flex; gap: 6px; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+  .cal-dow { text-align: center; font-size: .75rem; font-weight: 700; color: var(--muted); padding: 4px 0; }
+  .cal-day { position: relative; border: 1px solid var(--border); border-radius: 8px; min-height: 58px; padding: 6px; background: #fff; cursor: pointer; font-size: .9rem; }
+  .cal-day:hover { border-color: var(--accent); }
+  .cal-day.empty { background: transparent; border: none; cursor: default; }
+  .cal-day.dispo { background: #dcfce7; border-color: var(--ok); }
+  .cal-day.dispo:hover { border-color: #14532d; }
+  .cal-day .d { font-weight: 700; }
+  .cal-day .n { position: absolute; bottom: 6px; left: 6px; right: 6px; font-size: .72rem; color: #166534; }
+  .cal-day.today { outline: 2px solid var(--accent); outline-offset: -2px; }
+  .legend { display: flex; gap: 14px; margin-top: 12px; font-size: .82rem; color: var(--muted); flex-wrap: wrap; }
+  .legend .key { display: inline-block; width: 14px; height: 14px; border-radius: 4px; border: 1px solid var(--border); margin-right: 4px; vertical-align: -2px; }
+  .legend .key.on { background: #dcfce7; border-color: var(--ok); }
 </style>
 </head>
 <body>
@@ -77,7 +89,7 @@
   </div>
 
   <div id="appView" class="hidden">
-    <div class="tabs" id="adminTabs">
+    <div class="tabs">
       <button id="tabMy" class="active" onclick="showTab('my')">Mes disponibilités</button>
       <button id="tabAll" class="hidden" onclick="showTab('all')">Toutes les dispos (admin)</button>
       <button id="tabUsers" class="hidden" onclick="showTab('users')">Permanents (admin)</button>
@@ -85,39 +97,35 @@
 
     <div id="myView">
       <div class="card">
-        <h2>Déclarer mes disponibilités</h2>
-        <div id="saveMsg" class="msg"></div>
-        <div class="row">
-          <div><label for="dispoDate">Date</label><input id="dispoDate" type="date"></div>
-          <div><label for="dispoComment">Commentaire (facultatif)</label><input id="dispoComment" placeholder="Ex : arrive à 14h"></div>
+        <h2>Mon calendrier de disponibilités</h2>
+        <div id="myCalMsg" class="msg"></div>
+        <div id="myCalendar"></div>
+        <div class="legend">
+          <span><span class="key on"></span>Disponible</span>
+          <span><span class="key"></span>Indisponible (par défaut)</span>
+          <span>Cliquez sur un jour pour le rendre disponible, recliquez pour l'annuler.</span>
         </div>
-        <div style="margin-top:12px">
-          <div class="slot"><input type="checkbox" id="slotMatin"><span class="name">Matin</span></div>
-          <div class="slot"><input type="checkbox" id="slotApresMidi"><span class="name">Après-midi</span></div>
-          <div class="slot"><input type="checkbox" id="slotSoir"><span class="name">Soir</span></div>
-        </div>
-        <div class="actions">
-          <button onclick="saveDispo()">💾 Sauvegarder</button>
-          <button class="secondary" onclick="clearForm()">Effacer le formulaire</button>
-        </div>
-      </div>
-      <div class="card">
-        <h2>Mes disponibilités enregistrées</h2>
-        <div id="myDisposTable"></div>
       </div>
     </div>
 
     <div id="allView" class="hidden">
       <div class="card">
-        <h2>Toutes les disponibilités</h2>
-        <div class="row">
-          <div><label for="filterDate">Filtrer par date (facultatif)</label><input id="filterDate" type="date" onchange="renderAllDispos()"></div>
+        <h2>Disponibilités de tous les permanents</h2>
+        <div id="adminCalendar"></div>
+        <div class="legend">
+          <span>Le nombre affiché dans un jour = permanents disponibles ce jour-là.</span>
         </div>
         <div class="actions">
           <button class="secondary" onclick="exportCSV()">⬇️ Exporter en CSV</button>
         </div>
       </div>
-      <div class="card"><div id="allDisposTable"></div></div>
+      <div class="card">
+        <h2>Détail</h2>
+        <div class="row">
+          <div><label for="filterDate">Filtrer par date (facultatif)</label><input id="filterDate" type="date" onchange="renderAllDispos()"></div>
+        </div>
+        <div id="allDisposTable"></div>
+      </div>
     </div>
 
     <div id="usersView" class="hidden">
@@ -140,24 +148,29 @@
 
 </main>
 
+<script src="config.js"></script>
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script>
 "use strict";
 
-// ====== CONFIGURATION ======
-// Laissez vide pour le MODE LOCAL (données dans ce navigateur uniquement).
-// Pour un partage entre plusieurs appareils, remplissez avec vos valeurs Supabase (voir README).
-const SUPABASE_URL = "";
-const SUPABASE_ANON_KEY = "";
+const ADMIN_NOM = "admin";
+const ADMIN_SALT = "planning-permanence-admin";
+const ADMIN_HASH = "bd6e8b2c58f3a9344cd65ee2f337b9358eb9707ee5c0a060785422c829460d06";
+const ADMIN_ID = "__admin__";
 
-const SLOTS = ["Matin", "Après-midi", "Soir"];
-const sb = (SUPABASE_URL && SUPABASE_ANON_KEY) ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+const sb = (typeof SUPABASE_URL !== "undefined" && SUPABASE_URL && typeof SUPABASE_ANON_KEY !== "undefined" && SUPABASE_ANON_KEY)
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 const MODE = sb ? "partagé" : "local";
 const LS_DATA = "planning_permanence_data";
 const LS_SESSION = "planning_permanence_session";
 
+const DOW = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
+const MONTHS = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
+
 let currentUser = null;
 let cache = { users: [], dispos: [] };
+let calMonth = new Date().getMonth();
+let calYear = new Date().getFullYear();
 
 // ====== Utilitaires ======
 async function hashPassword(password, salt) {
@@ -177,7 +190,7 @@ function esc(s) {
 function showMsg(el, text, isError) {
   el.textContent = text;
   el.className = "msg " + (isError ? "error" : "info");
-  setTimeout(() => { el.className = "msg"; }, 6000);
+  setTimeout(() => { el.className = "msg"; }, 5000);
 }
 function todayISO() { return new Date().toISOString().slice(0, 10); }
 
@@ -223,6 +236,7 @@ async function doRegister() {
   const p1 = document.getElementById("regPass").value;
   const p2 = document.getElementById("regPass2").value;
   const msg = document.getElementById("registerMsg");
+  if (nom.toLowerCase() === ADMIN_NOM) return showMsg(msg, "Ce nom est réservé.", true);
   if (nom.length < 2) return showMsg(msg, "Le nom doit contenir au moins 2 caractères.", true);
   if (p1.length < 4) return showMsg(msg, "Le mot de passe doit contenir au moins 4 caractères.", true);
   if (p1 !== p2) return showMsg(msg, "Les deux mots de passe ne correspondent pas.", true);
@@ -249,7 +263,15 @@ async function doLogin() {
   const nom = document.getElementById("loginName").value.trim();
   const pass = document.getElementById("loginPass").value;
   const msg = document.getElementById("loginMsg");
+  if (!nom || !pass) return showMsg(msg, "Saisissez votre nom et votre mot de passe.", true);
   try {
+    if (nom.toLowerCase() === ADMIN_NOM) {
+      const hash = await hashPassword(pass, ADMIN_SALT);
+      if (hash !== ADMIN_HASH) return showMsg(msg, "Nom ou mot de passe incorrect.", true);
+      currentUser = { id: ADMIN_ID, nom: ADMIN_NOM, admin: true };
+      finishLogin();
+      return;
+    }
     const user = await findUserByName(nom);
     if (!user) return showMsg(msg, "Nom ou mot de passe incorrect.", true);
     const hash = await hashPassword(pass, user.salt);
@@ -268,6 +290,11 @@ function finishLogin() {
 async function tryRestoreSession() {
   const id = localStorage.getItem(LS_SESSION);
   if (!id) return false;
+  if (id === ADMIN_ID) {
+    currentUser = { id: ADMIN_ID, nom: ADMIN_NOM, admin: true };
+    enterApp();
+    return true;
+  }
   if (sb) {
     const res = await sb.from("permanents").select("id, nom, admin").eq("id", id).maybeSingle();
     if (res.error || !res.data) return false;
@@ -295,10 +322,10 @@ function enterApp() {
   const badge = document.getElementById("userBadge");
   badge.textContent = currentUser.nom + (currentUser.admin ? " (admin)" : "");
   const isAdmin = !!currentUser.admin;
+  document.getElementById("tabMy").classList.toggle("hidden", isAdmin);
   document.getElementById("tabAll").classList.toggle("hidden", !isAdmin);
   document.getElementById("tabUsers").classList.toggle("hidden", !isAdmin);
-  document.getElementById("dispoDate").value = todayISO();
-  showTab("my");
+  showTab(isAdmin ? "all" : "my");
   refresh();
 }
 
@@ -315,49 +342,129 @@ function showTab(tab) {
 
 async function refresh() {
   await loadAll();
-  renderMyDispos();
-  if (currentUser.admin) { renderAllDispos(); renderUsers(); }
+  if (!currentUser.admin) renderMyCalendar();
+  else { renderAdminCalendar(); renderAllDispos(); renderUsers(); }
 }
 
-// ====== Disponibilités ======
-async function saveDispo() {
-  const msg = document.getElementById("saveMsg");
-  const date = document.getElementById("dispoDate").value;
-  if (!date) return showMsg(msg, "Choisissez une date.", true);
-  const commentaire = document.getElementById("dispoComment").value.trim();
-  const checked = SLOTS.filter((s, i) =>
-    document.getElementById(["slotMatin", "slotApresMidi", "slotSoir"][i]).checked);
-  if (checked.length === 0) return showMsg(msg, "Cochez au moins un créneau disponible.", true);
+// ====== Calendrier ======
+function monthNavHtml(key) {
+  let html = `<div class="cal-head">
+    <div class="nav">
+      <button class="secondary" onclick="changeMonth('${key}',-1)">‹</button>
+      <button class="secondary" onclick="changeMonth('${key}',1)">›</button>
+    </div>
+    <div class="row" style="flex:0">
+      <select id="selMonth_${key}" onchange="pickMonth('${key}')">`;
+  for (let m = 0; m < 12; m++) {
+    html += `<option value="${m}" ${m === calMonth ? "selected" : ""}>${MONTHS[m]}</option>`;
+  }
+  html += `</select>
+      <select id="selYear_${key}" onchange="pickMonth('${key}')">`;
+  const thisYear = new Date().getFullYear();
+  for (let y = thisYear - 1; y <= thisYear + 3; y++) {
+    html += `<option value="${y}" ${y === calYear ? "selected" : ""}>${y}</option>`;
+  }
+  html += `</select>
+    </div></div>`;
+  return html;
+}
+
+function calendarGrid(key, dayHandler, dayClass, dayLabel) {
+  const first = new Date(calYear, calMonth, 1);
+  const startOffset = (first.getDay() + 6) % 7;
+  const nbDays = new Date(calYear, calMonth + 1, 0).getDate();
+  const today = todayISO();
+  let html = '<div class="cal-grid">';
+  for (const d of DOW) html += `<div class="cal-dow">${d}</div>`;
+  for (let i = 0; i < startOffset; i++) html += '<div class="cal-day empty"></div>';
+  for (let day = 1; day <= nbDays; day++) {
+    const iso = calYear + "-" + String(calMonth + 1).padStart(2, "0") + "-" + String(day).padStart(2, "0");
+    const cls = dayClass(iso);
+    const label = dayLabel(iso);
+    html += `<div class="cal-day ${cls} ${iso === today ? "today" : ""}" ${dayHandler ? `onclick="${dayHandler}('${iso}')"` : ""}>
+      <span class="d">${day}</span>${label ? `<span class="n">${label}</span>` : ""}</div>`;
+  }
+  html += "</div>";
+  return html;
+}
+
+function changeMonth(key, delta) {
+  calMonth += delta;
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  refresh();
+}
+function pickMonth(key) {
+  calMonth = parseInt(document.getElementById("selMonth_" + key).value, 10);
+  calYear = parseInt(document.getElementById("selYear_" + key).value, 10);
+  refresh();
+}
+
+// ====== Disponibilités du permanent ======
+function myDispoDates() {
+  const set = new Set();
+  for (const d of cache.dispos) if (d.permanent_id === currentUser.id) set.add(d.date);
+  return set;
+}
+
+function renderMyCalendar() {
+  const dates = myDispoDates();
+  const el = document.getElementById("myCalendar");
+  let html = monthNavHtml("my");
+  html += calendarGrid("my", "toggleDate", iso => dates.has(iso) ? "dispo" : "", "");
+  const countMonth = [...dates].filter(d => d.startsWith(calYear + "-" + String(calMonth + 1).padStart(2, "0"))).length;
+  html += `<p class="muted" style="margin-top:12px">${countMonth} jour(s) disponible(s) en ${MONTHS[calMonth].toLowerCase()} ${calYear}.</p>`;
+  el.innerHTML = html;
+}
+
+async function toggleDate(iso) {
+  const msg = document.getElementById("myCalMsg");
+  const has = cache.dispos.some(d => d.permanent_id === currentUser.id && d.date === iso);
   try {
-    for (const creneau of checked) {
+    if (has) {
       if (sb) {
-        const res = await sb.from("dispos").insert({ permanent_id: currentUser.id, date, creneau, dispo: true, commentaire });
+        const res = await sb.from("dispos").delete().eq("permanent_id", currentUser.id).eq("date", iso);
         if (res.error) throw new Error(res.error.message);
       } else {
-        cache.dispos.push({ id: uid(), permanent_id: currentUser.id, date, creneau, dispo: true, commentaire });
+        cache.dispos = cache.dispos.filter(d => !(d.permanent_id === currentUser.id && d.date === iso));
+        saveLocal();
+      }
+    } else {
+      if (sb) {
+        const res = await sb.from("dispos").insert({ permanent_id: currentUser.id, date: iso, creneau: "Journée", dispo: true, commentaire: "" });
+        if (res.error) throw new Error(res.error.message);
+      } else {
+        cache.dispos.push({ id: uid(), permanent_id: currentUser.id, date: iso, creneau: "Journée", dispo: true, commentaire: "" });
+        saveLocal();
       }
     }
-    if (!sb) saveLocal();
-    clearForm();
-    showMsg(msg, "Disponibilité(s) sauvegardée(s) ✔", false);
-    refresh();
+    await refresh();
   } catch (e) { showMsg(msg, "Erreur : " + e.message, true); }
 }
 
-function clearForm() {
-  ["slotMatin", "slotApresMidi", "slotSoir"].forEach(id => document.getElementById(id).checked = false);
-  document.getElementById("dispoComment").value = "";
+// ====== Vue admin ======
+function renderAdminCalendar() {
+  const counts = {};
+  for (const d of cache.dispos) {
+    counts[d.date] = (counts[d.date] || 0) + 1;
+  }
+  const el = document.getElementById("adminCalendar");
+  let html = monthNavHtml("admin");
+  html += calendarGrid("admin", null, iso => counts[iso] ? "dispo" : "", iso => counts[iso] ? counts[iso] + " dispo" : "");
+  el.innerHTML = html;
 }
 
-function renderMyDispos() {
-  const rows = cache.dispos
-    .filter(d => d.permanent_id === currentUser.id)
-    .sort((a, b) => (a.date + a.creneau).localeCompare(b.date + b.creneau));
-  const el = document.getElementById("myDisposTable");
-  if (!rows.length) { el.innerHTML = '<p class="muted">Aucune disponibilité enregistrée pour le moment.</p>'; return; }
-  let html = "<table><tr><th>Date</th><th>Créneau</th><th>Commentaire</th><th></th></tr>";
+function renderAllDispos() {
+  const filter = document.getElementById("filterDate").value;
+  const nameOf = id => (cache.users.find(u => u.id === id) || { nom: "?" }).nom;
+  let rows = cache.dispos.slice();
+  if (filter) rows = rows.filter(d => d.date === filter);
+  rows.sort((a, b) => a.date.localeCompare(b.date) || nameOf(a.permanent_id).localeCompare(nameOf(b.permanent_id)));
+  const el = document.getElementById("allDisposTable");
+  if (!rows.length) { el.innerHTML = '<p class="muted">Aucune disponibilité.</p>'; return; }
+  let html = "<table><tr><th>Date</th><th>Permanent</th><th></th></tr>";
   for (const d of rows) {
-    html += `<tr><td>${esc(d.date)}</td><td>${esc(d.creneau)}</td><td>${esc(d.commentaire)}</td>
+    html += `<tr><td>${esc(d.date)}</td><td>${esc(nameOf(d.permanent_id))}</td>
       <td><button class="danger" onclick="deleteDispo('${esc(d.id)}')">Supprimer</button></td></tr>`;
   }
   el.innerHTML = html + "</table>";
@@ -367,9 +474,7 @@ async function deleteDispo(id) {
   if (!confirm("Supprimer cette disponibilité ?")) return;
   try {
     if (sb) {
-      let q = sb.from("dispos").delete().eq("id", id);
-      if (!currentUser.admin) q = q.eq("permanent_id", currentUser.id);
-      const res = await q;
+      const res = await sb.from("dispos").delete().eq("id", id);
       if (res.error) throw new Error(res.error.message);
     } else {
       cache.dispos = cache.dispos.filter(d => d.id !== id);
@@ -379,26 +484,9 @@ async function deleteDispo(id) {
   } catch (e) { alert("Erreur : " + e.message); }
 }
 
-function renderAllDispos() {
-  const filter = document.getElementById("filterDate").value;
-  const nameOf = id => (cache.users.find(u => u.id === id) || {}).nom || "?";
-  let rows = cache.dispos.slice();
-  if (filter) rows = rows.filter(d => d.date === filter);
-  rows.sort((a, b) => (a.date + a.creneau).localeCompare(b.date + b.creneau));
-  const el = document.getElementById("allDisposTable");
-  if (!rows.length) { el.innerHTML = '<p class="muted">Aucune disponibilité.</p>'; return; }
-  let html = "<table><tr><th>Date</th><th>Créneau</th><th>Permanent</th><th>Commentaire</th><th></th></tr>";
-  for (const d of rows) {
-    html += `<tr><td>${esc(d.date)}</td><td>${esc(d.creneau)}</td><td>${esc(nameOf(d.permanent_id))}</td>
-      <td>${esc(d.commentaire)}</td>
-      <td><button class="danger" onclick="deleteDispo('${esc(d.id)}')">Supprimer</button></td></tr>`;
-  }
-  el.innerHTML = html + "</table>";
-}
-
 function renderUsers() {
   const el = document.getElementById("usersTable");
-  let html = "<table><tr><th>Nom</th><th>Rôle</th></tr>";
+  let html = "<table><tr><th>Nom</th><th>Rôle</th></tr><tr><td>admin</td><td><span class='badge ok'>admin</span></td></tr>";
   for (const u of cache.users) {
     html += `<tr><td>${esc(u.nom)}</td><td>${u.admin ? '<span class="badge ok">admin</span>' : '<span class="badge no">permanent</span>'}</td></tr>`;
   }
@@ -408,10 +496,10 @@ function renderUsers() {
 // ====== Export / import ======
 function csvCell(v) { return '"' + String(v ?? "").replace(/"/g, '""') + '"'; }
 function exportCSV() {
-  const nameOf = id => (cache.users.find(u => u.id === id) || {}).nom || "?";
-  const lines = [["Date", "Créneau", "Permanent", "Disponible", "Commentaire"]];
-  const rows = cache.dispos.slice().sort((a, b) => (a.date + a.creneau).localeCompare(b.date + b.creneau));
-  for (const d of rows) lines.push([d.date, d.creneau, nameOf(d.permanent_id), d.dispo ? "Oui" : "Non", d.commentaire || ""]);
+  const nameOf = id => (cache.users.find(u => u.id === id) || { nom: "?" }).nom;
+  const lines = [["Date", "Permanent", "Disponible"]];
+  const rows = cache.dispos.slice().sort((a, b) => a.date.localeCompare(b.date));
+  for (const d of rows) lines.push([d.date, nameOf(d.permanent_id), d.dispo ? "Oui" : "Non"]);
   const csv = "\uFEFF" + lines.map(l => l.map(csvCell).join(";")).join("\r\n");
   downloadBlob(new Blob([csv], { type: "text/csv;charset=utf-8" }), "planning-permanence.csv");
 }
