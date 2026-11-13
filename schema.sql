@@ -31,12 +31,26 @@ create table besoins (
   valeur int not null default 1
 );
 
+create table plannings (
+  mois text primary key,
+  contenu jsonb not null,
+  updated_at timestamptz not null default now()
+);
+
+create table verrous (
+  permanent_id uuid not null references permanents(id) on delete cascade,
+  mois text not null,
+  primary key (permanent_id, mois)
+);
+
 create index dispos_permanent_idx on dispos(permanent_id);
 create index dispos_date_idx on dispos(date);
 
 alter table permanents enable row level security;
 alter table dispos enable row level security;
 alter table besoins enable row level security;
+alter table plannings enable row level security;
+alter table verrous enable row level security;
 
 create policy "lecture des permanents" on permanents for select using (true);
 create policy "inscription" on permanents for insert with check (true);
@@ -48,8 +62,15 @@ create policy "suppression de dispos" on dispos for delete using (true);
 create policy "lecture des besoins" on besoins for select using (true);
 create policy "maj des besoins" on besoins for insert with check (true);
 create policy "maj des besoins 2" on besoins for update using (true);
+create policy "lecture des plannings" on plannings for select using (true);
+create policy "maj des plannings" on plannings for insert with check (true);
+create policy "maj des plannings 2" on plannings for update using (true);
+create policy "lecture des verrous" on verrous for select using (true);
+create policy "ajout des verrous" on verrous for insert with check (true);
+create policy "maj des verrous" on verrous for update using (true);
+create policy "suppression des verrous" on verrous for delete using (true);
 
--- ====== MISE À JOUR (si la base de la version précédente existe déjà) ======
+-- ====== MISE À JOUR (si la base d'une version précédente existe déjà) ======
 -- Exécutez uniquement ce bloc dans le SQL Editor :
 --
 -- alter table permanents
@@ -68,3 +89,24 @@ create policy "maj des besoins 2" on besoins for update using (true);
 -- create policy "lecture des besoins" on besoins for select using (true);
 -- create policy "maj des besoins" on besoins for insert with check (true);
 -- create policy "maj des besoins 2" on besoins for update using (true);
+--
+-- create table if not exists plannings (
+--   mois text primary key,
+--   contenu jsonb not null,
+--   updated_at timestamptz not null default now()
+-- );
+-- alter table plannings enable row level security;
+-- create policy "lecture des plannings" on plannings for select using (true);
+-- create policy "maj des plannings" on plannings for insert with check (true);
+-- create policy "maj des plannings 2" on plannings for update using (true);
+--
+-- create table if not exists verrous (
+--   permanent_id uuid not null references permanents(id) on delete cascade,
+--   mois text not null,
+--   primary key (permanent_id, mois)
+-- );
+-- alter table verrous enable row level security;
+-- create policy "lecture des verrous" on verrous for select using (true);
+-- create policy "ajout des verrous" on verrous for insert with check (true);
+-- create policy "maj des verrous" on verrous for update using (true);
+-- create policy "suppression des verrous" on verrous for delete using (true);
