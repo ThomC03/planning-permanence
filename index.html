@@ -1,158 +1,154 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Planning de permanence</title>
 <style>
-  :root { --accent: #2563eb; --bg: #f4f5f7; --card: #ffffff; --border: #d9dce1; --text: #1f2937; --muted: #6b7280; --ok: #16a34a; --no: #dc2626; }
+  :root { --bord: #d8d8d8; --fond: #fafafa; --accent: #3a6ea5; --ferme: #c0392b; --deux: #e67e22; --ok: #2e7d32; }
   * { box-sizing: border-box; }
-  body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); }
-  header { background: var(--card); border-bottom: 1px solid var(--border); padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
-  header h1 { font-size: 1.15rem; margin: 0; }
-  main { max-width: 880px; margin: 0 auto; padding: 20px 16px 60px; }
-  .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 18px; margin-bottom: 16px; }
-  .card h2 { margin: 0 0 12px; font-size: 1.05rem; }
-  label { display: block; font-size: .85rem; color: var(--muted); margin-bottom: 4px; }
-  input, select { padding: 9px 10px; border: 1px solid var(--border); border-radius: 8px; font-size: .95rem; background: #fff; }
-  .row { display: flex; gap: 10px; flex-wrap: wrap; }
-  .row > * { flex: 1; min-width: 140px; }
-  button { background: var(--accent); color: #fff; border: none; border-radius: 8px; padding: 10px 16px; font-size: .95rem; cursor: pointer; }
-  button.secondary { background: #e5e7eb; color: var(--text); }
-  button.danger { background: var(--no); }
-  .msg { padding: 10px 12px; border-radius: 8px; margin: 10px 0; font-size: .9rem; display: none; }
-  .msg.error { background: #fee2e2; color: #991b1b; display: block; }
-  .msg.info { background: #dbeafe; color: #1e40af; display: block; }
-  table { width: 100%; border-collapse: collapse; font-size: .9rem; }
-  th, td { border: 1px solid var(--border); padding: 8px 10px; text-align: left; }
-  th { background: #f0f2f5; }
-  .badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: .8rem; font-weight: 600; }
-  .badge.ok { background: #dcfce7; color: #166534; }
-  .badge.no { background: #fee2e2; color: #991b1b; }
-  .muted { color: var(--muted); font-size: .85rem; }
-  .tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
-  .tabs button { background: #e5e7eb; color: var(--text); }
-  .tabs button.active { background: var(--accent); color: #fff; }
-  .hidden { display: none; }
-  .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; align-items: center; }
-
-  /* Calendrier */
-  .cal-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
-  .cal-head .nav { display: flex; gap: 6px; }
-  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
-  .cal-dow { text-align: center; font-size: .75rem; font-weight: 700; color: var(--muted); padding: 4px 0; }
-  .cal-day { position: relative; border: 1px solid var(--border); border-radius: 8px; min-height: 58px; padding: 6px; background: #fff; cursor: pointer; font-size: .9rem; }
-  .cal-day:hover { border-color: var(--accent); }
-  .cal-day.empty { background: transparent; border: none; cursor: default; }
-  .cal-day.dispo { background: #dcfce7; border-color: var(--ok); }
-  .cal-day.dispo:hover { border-color: #14532d; }
-  .cal-day .d { font-weight: 700; }
-  .cal-day .n { position: absolute; bottom: 6px; left: 6px; right: 6px; font-size: .72rem; color: #166534; }
-  .cal-day.today { outline: 2px solid var(--accent); outline-offset: -2px; }
-  .legend { display: flex; gap: 14px; margin-top: 12px; font-size: .82rem; color: var(--muted); flex-wrap: wrap; }
-  .legend .key { display: inline-block; width: 14px; height: 14px; border-radius: 4px; border: 1px solid var(--border); margin-right: 4px; vertical-align: -2px; }
-  .legend .key.on { background: #dcfce7; border-color: var(--ok); }
+  body { font-family: system-ui, "Segoe UI", Arial, sans-serif; margin: 0; background: var(--fond); color: #222; }
+  header { background: #fff; border-bottom: 1px solid var(--bord); padding: 10px 20px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  header h1 { font-size: 18px; margin: 0 16px 0 0; font-weight: 600; }
+  header .spacer { flex: 1; }
+  #userBadge { font-size: 13px; background: #e8f0e8; color: var(--ok); padding: 3px 12px; border-radius: 12px; font-weight: 600; }
+  nav { display: flex; gap: 4px; padding: 0 20px; background: #fff; border-bottom: 1px solid var(--bord); flex-wrap: wrap; }
+  nav button { border: none; background: none; padding: 10px 14px; cursor: pointer; font-size: 14px; color: #555; border-bottom: 2px solid transparent; }
+  nav button.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
+  main { padding: 20px; max-width: 980px; margin: 0 auto; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+  .cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-top: 12px; }
+  .cal .dow { text-align: center; font-size: 12px; color: #888; padding: 4px 0; }
+  .cell { border: 1px solid var(--bord); background: #fff; border-radius: 4px; min-height: 56px; padding: 4px 6px; cursor: pointer; font-size: 13px; user-select: none; position: relative; }
+  .cell:hover { border-color: var(--accent); }
+  .cell .num { font-weight: 600; }
+  .cell .badge { display: inline-block; margin-top: 4px; padding: 1px 8px; border-radius: 10px; font-size: 12px; background: #e8f0e8; color: var(--ok); }
+  .cell.deux .badge { background: #fdeee0; color: var(--deux); }
+  .cell.ferme { background: #f5e9e7; }
+  .cell.ferme .badge { background: var(--ferme); color: #fff; }
+  .cell.weekend { background: #f2f4f7; }
+  .cell.off { visibility: hidden; cursor: default; }
+  .cell.dispo-off { background: #eee; color: #999; }
+  .cell.dispo-off .badge { background: #ddd; color: #777; }
+  .cell .names { display: block; font-size: 12px; margin-top: 2px; color: var(--accent); }
+  .cell.today { outline: 2px solid var(--accent); outline-offset: -2px; }
+  .legend { font-size: 13px; color: #666; margin-top: 10px; }
+  .pers-tabs { display: flex; gap: 6px; margin: 14px 0 0; flex-wrap: wrap; align-items: center; }
+  .pers-tabs button { border: 1px solid var(--bord); background: #fff; border-radius: 14px; padding: 4px 12px; cursor: pointer; font-size: 13px; }
+  .pers-tabs button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .ligne { display: flex; align-items: center; gap: 14px; padding: 10px 0; border-bottom: 1px solid var(--bord); flex-wrap: wrap; }
+  .ligne .nom { width: 140px; font-weight: 600; }
+  .ligne label { font-size: 14px; display: flex; gap: 5px; align-items: center; }
+  button.action { background: var(--accent); color: #fff; border: none; border-radius: 4px; padding: 9px 18px; font-size: 14px; cursor: pointer; }
+  button.action:hover { filter: brightness(1.1); }
+  button.secondaire { background: #fff; border: 1px solid var(--bord); border-radius: 4px; padding: 8px 14px; cursor: pointer; font-size: 14px; }
+  .alt-btns { display: flex; gap: 6px; margin: 12px 0; flex-wrap: wrap; }
+  .alt-btns button { border: 1px solid var(--bord); background: #fff; border-radius: 4px; padding: 5px 12px; cursor: pointer; }
+  .alt-btns button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  table { border-collapse: collapse; margin-top: 12px; font-size: 14px; background: #fff; }
+  th, td { border: 1px solid var(--bord); padding: 6px 12px; text-align: left; }
+  th { background: #f0f0f0; }
+  .msg { padding: 10px 14px; border-radius: 4px; margin: 12px 0; font-size: 14px; display: none; }
+  .msg.err { background: #fdecea; color: var(--ferme); border: 1px solid #f5c6c0; display: block; }
+  .msg.ok { background: #eaf5ea; color: var(--ok); border: 1px solid #c8e6c9; display: block; }
+  .barre { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
+  input[type=month], input[type=text], input[type=password], input[type=number], textarea, select {
+    padding: 7px 10px; border: 1px solid var(--bord); border-radius: 4px; font-size: 14px; font-family: inherit; }
+  textarea { width: 100%; min-height: 70px; margin-top: 10px; }
+  .commentaire { margin-top: 14px; max-width: 600px; }
+  .commentaire label { font-size: 13px; color: #666; }
+  .auth { max-width: 420px; margin: 30px auto; background: #fff; border: 1px solid var(--bord); border-radius: 6px; padding: 20px; }
+  .auth h2 { margin: 0 0 14px; font-size: 16px; }
+  .auth .champ { margin-bottom: 12px; }
+  .auth label { display: block; font-size: 13px; color: #666; margin-bottom: 4px; }
+  .auth input { width: 100%; }
+  .auth button { width: 100%; }
+  .hint { font-size: 12px; color: #999; margin-top: 10px; }
+  @media print {
+    header, nav, .barre, .alt-btns, .legend, button { display: none !important; }
+    body { background: #fff; }
+    .panel { display: none !important; }
+    #panel-resultat { display: block !important; }
+  }
 </style>
 </head>
 <body>
 <header>
   <h1>📅 Planning de permanence</h1>
-  <div>
-    <span id="modeBadge" class="muted"></span>
-    <span id="userBadge" class="badge ok"></span>
-    <button id="logoutBtn" class="secondary hidden" onclick="logout()">Déconnexion</button>
-  </div>
+  <label id="lblMois">Mois : <input type="month" id="mois"></label>
+  <span id="zoneAdmin">
+    <label>Alternatives : <input type="number" id="nbAlt" value="3" min="1" max="10" style="width:60px"></label>
+    <button class="action" id="btnGen">Générer le planning</button>
+  </span>
+  <span class="spacer"></span>
+  <span id="modeBadge" class="hint"></span>
+  <span id="userBadge"></span>
+  <button class="secondaire" id="btnLogout" style="display:none">Déconnexion</button>
 </header>
-<main>
 
-  <div id="authView">
-    <div class="card">
-      <h2>Connexion</h2>
-      <div id="loginMsg" class="msg"></div>
-      <div class="row">
-        <div><label for="loginName">Nom</label><input id="loginName" autocomplete="username"></div>
-        <div><label for="loginPass">Mot de passe</label><input id="loginPass" type="password" autocomplete="current-password"></div>
-      </div>
-      <div class="actions"><button onclick="doLogin()">Se connecter</button></div>
-    </div>
-    <div class="card">
-      <h2>Nouveau permanent — créer mon identifiant</h2>
-      <div id="registerMsg" class="msg"></div>
-      <div class="row">
-        <div><label for="regName">Nom (unique, gardez-le)</label><input id="regName"></div>
-        <div><label for="regPass">Mot de passe (4 caractères min.)</label><input id="regPass" type="password"></div>
-        <div><label for="regPass2">Confirmer</label><input id="regPass2" type="password"></div>
-      </div>
-      <div class="actions"><button onclick="doRegister()">Créer mon compte</button></div>
-      <p class="muted">Votre identifiant (nom + mot de passe) reste valable à chaque visite.</p>
-    </div>
+<div id="authView">
+  <div class="auth">
+    <h2>Connexion</h2>
+    <div id="loginMsg" class="msg"></div>
+    <div class="champ"><label>Nom</label><input type="text" id="loginName" autocomplete="username"></div>
+    <div class="champ"><label>Mot de passe</label><input type="password" id="loginPass" autocomplete="current-password"></div>
+    <button class="action" id="btnLogin">Se connecter</button>
+    <p class="hint">Nouveau permanent ? <a href="#" id="lnkRegister">Créer mon identifiant</a></p>
   </div>
-
-  <div id="appView" class="hidden">
-    <div class="tabs">
-      <button id="tabMy" class="active" onclick="showTab('my')">Mes disponibilités</button>
-      <button id="tabAll" class="hidden" onclick="showTab('all')">Toutes les dispos (admin)</button>
-      <button id="tabUsers" class="hidden" onclick="showTab('users')">Permanents (admin)</button>
-    </div>
-
-    <div id="myView">
-      <div class="card">
-        <h2>Mon calendrier de disponibilités</h2>
-        <div id="myCalMsg" class="msg"></div>
-        <div id="myCalendar"></div>
-        <div class="legend">
-          <span><span class="key on"></span>Disponible</span>
-          <span><span class="key"></span>Indisponible (par défaut)</span>
-          <span>Cliquez sur un jour pour le rendre disponible, recliquez pour l'annuler.</span>
-        </div>
-      </div>
-    </div>
-
-    <div id="allView" class="hidden">
-      <div class="card">
-        <h2>Disponibilités de tous les permanents</h2>
-        <div id="adminCalendar"></div>
-        <div class="legend">
-          <span>Le nombre affiché dans un jour = permanents disponibles ce jour-là.</span>
-        </div>
-        <div class="actions">
-          <button class="secondary" onclick="exportCSV()">⬇️ Exporter en CSV</button>
-        </div>
-      </div>
-      <div class="card">
-        <h2>Détail</h2>
-        <div class="row">
-          <div><label for="filterDate">Filtrer par date (facultatif)</label><input id="filterDate" type="date" onchange="renderAllDispos()"></div>
-        </div>
-        <div id="allDisposTable"></div>
-      </div>
-    </div>
-
-    <div id="usersView" class="hidden">
-      <div class="card">
-        <h2>Permanents inscrits</h2>
-        <div id="usersTable"></div>
-      </div>
-      <div class="card">
-        <h2>Sauvegarde / restauration (admin)</h2>
-        <div class="actions">
-          <button class="secondary" onclick="exportJSON()">⬇️ Sauvegarder en fichier JSON</button>
-          <label class="muted" style="flex:1">Restaurer :
-            <input type="file" id="importFile" accept=".json" onchange="importJSON(this)">
-          </label>
-        </div>
-        <p class="muted">La sauvegarde JSON contient comptes et disponibilités — utile en mode local ou pour archiver.</p>
-      </div>
-    </div>
+  <div class="auth" id="registerBox" style="display:none">
+    <h2>Créer mon identifiant</h2>
+    <div id="registerMsg" class="msg"></div>
+    <div class="champ"><label>Nom (unique, gardez-le)</label><input type="text" id="regName"></div>
+    <div class="champ"><label>Mot de passe (4 caractères min.)</label><input type="password" id="regPass"></div>
+    <div class="champ"><label>Confirmer le mot de passe</label><input type="password" id="regPass2"></div>
+    <button class="action" id="btnRegister">Créer mon compte</button>
+    <p class="hint"><a href="#" id="lnkLogin">← Retour à la connexion</a></p>
   </div>
+</div>
 
-</main>
+<div id="appView" style="display:none">
+  <nav id="navTabs">
+    <button data-tab="boutique" id="tabBoutique">Boutique</button>
+    <button data-tab="dispos" id="tabDispos" class="active">Disponibilités</button>
+    <button data-tab="contraintes" id="tabContraintes">Contraintes</button>
+    <button data-tab="resultat" id="tabResultat">Résultat</button>
+  </nav>
+  <main>
+    <div class="panel" id="panel-boutique">
+      <div class="cal" id="calBoutique"></div>
+      <p class="legend">Cliquez sur un jour pour faire défiler : <b>1 personne</b> → <b>2 personnes</b> → <b>fermé</b> → 1 personne…</p>
+    </div>
+    <div class="panel active" id="panel-dispos">
+      <div id="dispoIntro"></div>
+      <div class="pers-tabs" id="dispoTabs"></div>
+      <div class="cal" id="calDispo"></div>
+      <div class="commentaire" id="zoneCom" style="display:none">
+        <label>Commentaire (visible par l'administrateur) :</label>
+        <textarea id="txtCom" placeholder="Précisions, contraintes particulières…"></textarea>
+      </div>
+    </div>
+    <div class="panel" id="panel-contraintes">
+      <p class="legend">Contraintes prises en compte par le générateur de planning.</p>
+      <div id="listeContraintes"></div>
+    </div>
+    <div class="panel" id="panel-resultat">
+      <div class="barre" id="zoneExport" style="display:none">
+        <button class="secondaire" id="btnCsv">Exporter CSV</button>
+        <button class="secondaire" id="btnJson">Exporter JSON</button>
+        <button class="secondaire" id="btnPrint">Imprimer / PDF</button>
+      </div>
+      <div id="zoneResultat"><p class="legend">Générez le planning (bouton en haut) pour voir le résultat.</p></div>
+    </div>
+  </main>
+</div>
 
 <script src="config.js"></script>
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script>
 "use strict";
 
+// ====== Compte admin intégré ======
 const ADMIN_NOM = "admin";
 const ADMIN_SALT = "planning-permanence-admin";
 const ADMIN_HASH = "bd6e8b2c58f3a9344cd65ee2f337b9358eb9707ee5c0a060785422c829460d06";
@@ -160,17 +156,16 @@ const ADMIN_ID = "__admin__";
 
 const sb = (typeof SUPABASE_URL !== "undefined" && SUPABASE_URL && typeof SUPABASE_ANON_KEY !== "undefined" && SUPABASE_ANON_KEY)
   ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
-const MODE = sb ? "partagé" : "local";
-const LS_DATA = "planning_permanence_data";
+const MODE = sb ? "partagé (Supabase)" : "local (ce navigateur)";
+const LS_DATA = "planning_permanence_v3";
 const LS_SESSION = "planning_permanence_session";
 
 const DOW = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
-const MONTHS = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
 
 let currentUser = null;
-let cache = { users: [], dispos: [] };
-let calMonth = new Date().getMonth();
-let calYear = new Date().getFullYear();
+let cache = { users: [], dispos: [], besoins: {} };
+let state = { mois: new Date().toISOString().slice(0, 7), dispoTab: 0 };
+let lastRes = null;
 
 // ====== Utilitaires ======
 async function hashPassword(password, salt) {
@@ -178,44 +173,45 @@ async function hashPassword(password, salt) {
   const digest = await crypto.subtle.digest("SHA-256", data);
   return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, "0")).join("");
 }
-function randomSalt() {
-  return crypto.getRandomValues(new Uint32Array(4)).join("-");
-}
-function uid() {
-  return crypto.randomUUID ? crypto.randomUUID() : Date.now() + "-" + Math.random().toString(36).slice(2);
-}
-function esc(s) {
-  return String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-}
-function showMsg(el, text, isError) {
+function randomSalt() { return crypto.getRandomValues(new Uint32Array(4)).join("-"); }
+function uid() { return crypto.randomUUID ? crypto.randomUUID() : Date.now() + "-" + Math.random().toString(36).slice(2); }
+function esc(s) { return String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+function showMsg(el, text, isErr) {
   el.textContent = text;
-  el.className = "msg " + (isError ? "error" : "info");
-  setTimeout(() => { el.className = "msg"; }, 5000);
+  el.className = "msg " + (isErr ? "err" : "ok");
+  setTimeout(() => { el.className = "msg"; }, 6000);
 }
-function todayISO() { return new Date().toISOString().slice(0, 10); }
+function iso(d) { return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+function daysOfMonth(ym) {
+  const [y, m] = ym.split("-").map(Number);
+  const days = [];
+  let d = new Date(y, m - 1, 1);
+  while (d.getFullYear() === y && d.getMonth() === m - 1) { days.push(new Date(d)); d = new Date(y, m - 1, d.getDate() + 1); }
+  return days;
+}
 
-// ====== Stockage local ======
+// ====== Stockage ======
 function loadLocal() {
-  try { cache = JSON.parse(localStorage.getItem(LS_DATA)) || { users: [], dispos: [] }; }
-  catch { cache = { users: [], dispos: [] }; }
-  if (!Array.isArray(cache.users)) cache.users = [];
-  if (!Array.isArray(cache.dispos)) cache.dispos = [];
+  try {
+    const s = JSON.parse(localStorage.getItem(LS_DATA));
+    if (s) { cache.users = s.users || []; cache.dispos = s.dispos || []; cache.besoins = s.besoins || {}; }
+  } catch (e) {}
 }
 function saveLocal() {
-  localStorage.setItem(LS_DATA, JSON.stringify(cache));
+  localStorage.setItem(LS_DATA, JSON.stringify({ users: cache.users, dispos: cache.dispos, besoins: cache.besoins }));
 }
-
-// ====== Chargement des données ======
 async function loadAll() {
   if (sb) {
-    const [usersRes, disposRes] = await Promise.all([
-      sb.from("permanents").select("id, nom, admin"),
-      sb.from("dispos").select("id, permanent_id, date, creneau, dispo, commentaire")
+    const [u, d, b] = await Promise.all([
+      sb.from("permanents").select("id, nom, admin, no_we, only_we, min_we, paired, max_days, commentaire"),
+      sb.from("dispos").select("id, permanent_id, date, creneau, dispo, commentaire"),
+      sb.from("besoins").select("date, valeur")
     ]);
-    if (usersRes.error) { alert("Erreur de lecture (permanents) : " + usersRes.error.message); return; }
-    if (disposRes.error) { alert("Erreur de lecture (dispos) : " + disposRes.error.message); return; }
-    cache.users = usersRes.data;
-    cache.dispos = disposRes.data;
+    if (u.error || d.error || b.error) { alert("Erreur de lecture : " + (u.error || d.error || b.error).message); return; }
+    cache.users = u.data;
+    cache.dispos = d.data;
+    cache.besoins = {};
+    for (const r of b.data) cache.besoins[r.date] = r.valeur;
   } else {
     loadLocal();
   }
@@ -230,7 +226,23 @@ async function findUserByName(nom) {
   }
   return cache.users.find(u => u.nom === nom) || null;
 }
-
+async function doLogin() {
+  const nom = document.getElementById("loginName").value.trim();
+  const pass = document.getElementById("loginPass").value;
+  const msg = document.getElementById("loginMsg");
+  if (!nom || !pass) return showMsg(msg, "Saisissez votre nom et votre mot de passe.", true);
+  try {
+    if (nom.toLowerCase() === ADMIN_NOM) {
+      if (await hashPassword(pass, ADMIN_SALT) !== ADMIN_HASH) return showMsg(msg, "Nom ou mot de passe incorrect.", true);
+      currentUser = { id: ADMIN_ID, nom: ADMIN_NOM, admin: true };
+      return finishLogin();
+    }
+    const user = await findUserByName(nom);
+    if (!user || await hashPassword(pass, user.salt) !== user.mdp_hash) return showMsg(msg, "Nom ou mot de passe incorrect.", true);
+    currentUser = user;
+    finishLogin();
+  } catch (e) { showMsg(msg, "Erreur : " + e.message, true); }
+}
 async function doRegister() {
   const nom = document.getElementById("regName").value.trim();
   const p1 = document.getElementById("regPass").value;
@@ -241,62 +253,32 @@ async function doRegister() {
   if (p1.length < 4) return showMsg(msg, "Le mot de passe doit contenir au moins 4 caractères.", true);
   if (p1 !== p2) return showMsg(msg, "Les deux mots de passe ne correspondent pas.", true);
   try {
-    if (await findUserByName(nom)) return showMsg(msg, "Ce nom est déjà pris. Choisissez-en un autre.", true);
+    if (await findUserByName(nom)) return showMsg(msg, "Ce nom est déjà pris.", true);
     const salt = randomSalt();
     const hash = await hashPassword(p1, salt);
+    const c = { no_we: false, only_we: false, min_we: false, paired: false, max_days: 0 };
     if (sb) {
-      const res = await sb.from("permanents").insert({ nom, mdp_hash: hash, salt, admin: false }).select("id, nom, admin").single();
+      const res = await sb.from("permanents").insert({ nom, mdp_hash: hash, salt, admin: false, ...c }).select("id, nom, admin, no_we, only_we, min_we, paired, max_days, commentaire").single();
       if (res.error) throw new Error(res.error.message);
       currentUser = res.data;
     } else {
-      const user = { id: uid(), nom, mdp_hash: hash, salt, admin: cache.users.length === 0 };
-      cache.users.push(user);
+      currentUser = { id: uid(), nom, mdp_hash: hash, salt, admin: false, ...c, commentaire: "" };
+      cache.users.push(currentUser);
       saveLocal();
-      currentUser = user;
     }
-    showMsg(msg, "Compte créé ! Vous êtes connecté.", false);
     finishLogin();
   } catch (e) { showMsg(msg, "Erreur : " + e.message, true); }
 }
-
-async function doLogin() {
-  const nom = document.getElementById("loginName").value.trim();
-  const pass = document.getElementById("loginPass").value;
-  const msg = document.getElementById("loginMsg");
-  if (!nom || !pass) return showMsg(msg, "Saisissez votre nom et votre mot de passe.", true);
-  try {
-    if (nom.toLowerCase() === ADMIN_NOM) {
-      const hash = await hashPassword(pass, ADMIN_SALT);
-      if (hash !== ADMIN_HASH) return showMsg(msg, "Nom ou mot de passe incorrect.", true);
-      currentUser = { id: ADMIN_ID, nom: ADMIN_NOM, admin: true };
-      finishLogin();
-      return;
-    }
-    const user = await findUserByName(nom);
-    if (!user) return showMsg(msg, "Nom ou mot de passe incorrect.", true);
-    const hash = await hashPassword(pass, user.salt);
-    if (hash !== user.mdp_hash) return showMsg(msg, "Nom ou mot de passe incorrect.", true);
-    currentUser = user;
-    finishLogin();
-  } catch (e) { showMsg(msg, "Erreur : " + e.message, true); }
-}
-
 function finishLogin() {
   localStorage.setItem(LS_SESSION, currentUser.id);
-  document.getElementById("loginPass").value = "";
   enterApp();
 }
-
 async function tryRestoreSession() {
   const id = localStorage.getItem(LS_SESSION);
   if (!id) return false;
-  if (id === ADMIN_ID) {
-    currentUser = { id: ADMIN_ID, nom: ADMIN_NOM, admin: true };
-    enterApp();
-    return true;
-  }
+  if (id === ADMIN_ID) { currentUser = { id: ADMIN_ID, nom: ADMIN_NOM, admin: true }; enterApp(); return true; }
   if (sb) {
-    const res = await sb.from("permanents").select("id, nom, admin").eq("id", id).maybeSingle();
+    const res = await sb.from("permanents").select("id, nom, admin, no_we, only_we, min_we, paired, max_days, commentaire").eq("id", id).maybeSingle();
     if (res.error || !res.data) return false;
     currentUser = res.data;
   } else {
@@ -307,241 +289,398 @@ async function tryRestoreSession() {
   enterApp();
   return true;
 }
-
 function logout() {
   localStorage.removeItem(LS_SESSION);
-  currentUser = null;
   location.reload();
 }
 
-// ====== Navigation ======
+// ====== Interface ======
 function enterApp() {
-  document.getElementById("authView").classList.add("hidden");
-  document.getElementById("appView").classList.remove("hidden");
-  document.getElementById("logoutBtn").classList.remove("hidden");
-  const badge = document.getElementById("userBadge");
-  badge.textContent = currentUser.nom + (currentUser.admin ? " (admin)" : "");
-  const isAdmin = !!currentUser.admin;
-  document.getElementById("tabMy").classList.toggle("hidden", isAdmin);
-  document.getElementById("tabAll").classList.toggle("hidden", !isAdmin);
-  document.getElementById("tabUsers").classList.toggle("hidden", !isAdmin);
-  showTab(isAdmin ? "all" : "my");
+  document.getElementById("authView").style.display = "none";
+  document.getElementById("appView").style.display = "";
+  document.getElementById("btnLogout").style.display = "";
+  document.getElementById("userBadge").textContent = currentUser.nom + (currentUser.admin ? " (admin)" : "");
+  const adm = !!currentUser.admin;
+  document.getElementById("zoneAdmin").style.display = adm ? "" : "none";
+  document.getElementById("tabBoutique").style.display = adm ? "" : "none";
+  document.getElementById("tabContraintes").style.display = adm ? "" : "none";
+  document.getElementById("tabResultat").style.display = adm ? "" : "none";
+  document.getElementById("mois").value = state.mois;
+  showTab("dispos");
   refresh();
 }
-
-let currentTab = "my";
-function showTab(tab) {
-  currentTab = tab;
-  document.getElementById("tabMy").classList.toggle("active", tab === "my");
-  document.getElementById("tabAll").classList.toggle("active", tab === "all");
-  document.getElementById("tabUsers").classList.toggle("active", tab === "users");
-  document.getElementById("myView").classList.toggle("hidden", tab !== "my");
-  document.getElementById("allView").classList.toggle("hidden", tab !== "all");
-  document.getElementById("usersView").classList.toggle("hidden", tab !== "users");
+function showTab(name) {
+  document.querySelectorAll("#navTabs button").forEach(x => x.classList.toggle("active", x.dataset.tab === name));
+  document.querySelectorAll(".panel").forEach(x => x.classList.toggle("active", x.id === "panel-" + name));
 }
-
 async function refresh() {
   await loadAll();
-  if (!currentUser.admin) renderMyCalendar();
-  else { renderAdminCalendar(); renderAllDispos(); renderUsers(); }
+  const adm = !!currentUser.admin;
+  const days = daysOfMonth(state.mois);
+  if (adm) renderCal(document.getElementById("calBoutique"), days, "boutique");
+  const list = adm ? cache.users.filter(u => u.id !== ADMIN_ID) : [currentUser];
+  const tabs = document.getElementById("dispoTabs");
+  tabs.innerHTML = "";
+  if (adm) {
+    const lbl = document.createElement("span");
+    lbl.className = "legend";
+    lbl.textContent = "Permanents : ";
+    tabs.appendChild(lbl);
+  }
+  list.forEach((p, i) => {
+    const b = document.createElement("button");
+    b.textContent = p.nom;
+    if (i === state.dispoTab) b.classList.add("active");
+    b.onclick = () => { state.dispoTab = i; refresh(); };
+    tabs.appendChild(b);
+  });
+  const who = list[state.dispoTab] || list[0];
+  document.getElementById("dispoIntro").innerHTML = adm
+    ? '<p class="legend">Sélectionnez un permanent puis cliquez sur ses jours <b>disponibles</b> (par défaut : aucun).</p>'
+    : '<p class="legend">Cliquez sur vos jours <b>disponibles</b> (par défaut : aucun jour disponible). Un second clic annule.</p>';
+  if (who) {
+    renderCal(document.getElementById("calDispo"), days, "dispo", who);
+    document.getElementById("zoneCom").style.display = "";
+    const txt = document.getElementById("txtCom");
+    if (document.activeElement !== txt) txt.value = who.commentaire || "";
+    txt.readOnly = adm;
+  } else {
+    document.getElementById("calDispo").innerHTML = "<p class='legend'>Aucun permanent inscrit pour le moment.</p>";
+    document.getElementById("zoneCom").style.display = "none";
+  }
+  if (adm) renderContraintes();
 }
 
 // ====== Calendrier ======
-function monthNavHtml(key) {
-  let html = `<div class="cal-head">
-    <div class="nav">
-      <button class="secondary" onclick="changeMonth('${key}',-1)">‹</button>
-      <button class="secondary" onclick="changeMonth('${key}',1)">›</button>
-    </div>
-    <div class="row" style="flex:0">
-      <select id="selMonth_${key}" onchange="pickMonth('${key}')">`;
-  for (let m = 0; m < 12; m++) {
-    html += `<option value="${m}" ${m === calMonth ? "selected" : ""}>${MONTHS[m]}</option>`;
-  }
-  html += `</select>
-      <select id="selYear_${key}" onchange="pickMonth('${key}')">`;
-  const thisYear = new Date().getFullYear();
-  for (let y = thisYear - 1; y <= thisYear + 3; y++) {
-    html += `<option value="${y}" ${y === calYear ? "selected" : ""}>${y}</option>`;
-  }
-  html += `</select>
-    </div></div>`;
-  return html;
-}
-
-function calendarGrid(key, dayHandler, dayClass, dayLabel) {
-  const first = new Date(calYear, calMonth, 1);
-  const startOffset = (first.getDay() + 6) % 7;
-  const nbDays = new Date(calYear, calMonth + 1, 0).getDate();
-  const today = todayISO();
-  let html = '<div class="cal-grid">';
-  for (const d of DOW) html += `<div class="cal-dow">${d}</div>`;
-  for (let i = 0; i < startOffset; i++) html += '<div class="cal-day empty"></div>';
-  for (let day = 1; day <= nbDays; day++) {
-    const iso = calYear + "-" + String(calMonth + 1).padStart(2, "0") + "-" + String(day).padStart(2, "0");
-    const cls = dayClass(iso);
-    const label = dayLabel(iso);
-    html += `<div class="cal-day ${cls} ${iso === today ? "today" : ""}" ${dayHandler ? `onclick="${dayHandler}('${iso}')"` : ""}>
-      <span class="d">${day}</span>${label ? `<span class="n">${label}</span>` : ""}</div>`;
-  }
-  html += "</div>";
-  return html;
-}
-
-function changeMonth(key, delta) {
-  calMonth += delta;
-  if (calMonth < 0) { calMonth = 11; calYear--; }
-  if (calMonth > 11) { calMonth = 0; calYear++; }
-  refresh();
-}
-function pickMonth(key) {
-  calMonth = parseInt(document.getElementById("selMonth_" + key).value, 10);
-  calYear = parseInt(document.getElementById("selYear_" + key).value, 10);
-  refresh();
-}
-
-// ====== Disponibilités du permanent ======
-function myDispoDates() {
-  const set = new Set();
-  for (const d of cache.dispos) if (d.permanent_id === currentUser.id) set.add(d.date);
-  return set;
-}
-
-function renderMyCalendar() {
-  const dates = myDispoDates();
-  const el = document.getElementById("myCalendar");
-  let html = monthNavHtml("my");
-  html += calendarGrid("my", "toggleDate", iso => dates.has(iso) ? "dispo" : "", "");
-  const countMonth = [...dates].filter(d => d.startsWith(calYear + "-" + String(calMonth + 1).padStart(2, "0"))).length;
-  html += `<p class="muted" style="margin-top:12px">${countMonth} jour(s) disponible(s) en ${MONTHS[calMonth].toLowerCase()} ${calYear}.</p>`;
-  el.innerHTML = html;
-}
-
-async function toggleDate(iso) {
-  const msg = document.getElementById("myCalMsg");
-  const has = cache.dispos.some(d => d.permanent_id === currentUser.id && d.date === iso);
-  try {
-    if (has) {
-      if (sb) {
-        const res = await sb.from("dispos").delete().eq("permanent_id", currentUser.id).eq("date", iso);
-        if (res.error) throw new Error(res.error.message);
-      } else {
-        cache.dispos = cache.dispos.filter(d => !(d.permanent_id === currentUser.id && d.date === iso));
-        saveLocal();
-      }
-    } else {
-      if (sb) {
-        const res = await sb.from("dispos").insert({ permanent_id: currentUser.id, date: iso, creneau: "Journée", dispo: true, commentaire: "" });
-        if (res.error) throw new Error(res.error.message);
-      } else {
-        cache.dispos.push({ id: uid(), permanent_id: currentUser.id, date: iso, creneau: "Journée", dispo: true, commentaire: "" });
-        saveLocal();
+function renderCal(container, days, mode, person) {
+  container.innerHTML = "";
+  DOW.forEach(w => { const e = document.createElement("div"); e.className = "dow"; e.textContent = w; container.appendChild(e); });
+  const first = (days[0].getDay() + 6) % 7;
+  for (let i = 0; i < first; i++) { const e = document.createElement("div"); e.className = "cell off"; container.appendChild(e); }
+  const today = iso(new Date());
+  days.forEach(d => {
+    const cell = document.createElement("div");
+    cell.className = "cell";
+    if (d.getDay() >= 6) cell.classList.add("weekend");
+    if (iso(d) === today) cell.classList.add("today");
+    const num = document.createElement("span"); num.className = "num"; num.textContent = d.getDate();
+    cell.appendChild(num);
+    const key = iso(d);
+    if (mode === "boutique") {
+      const b = cache.besoins[key] === undefined ? 1 : cache.besoins[key];
+      const badge = document.createElement("span"); badge.className = "badge";
+      if (b === 0) { cell.classList.add("ferme"); badge.textContent = "Fermé"; }
+      else if (b === 2) { cell.classList.add("deux"); badge.textContent = "2 pers."; }
+      else badge.textContent = "1 pers.";
+      cell.appendChild(badge);
+      cell.onclick = () => toggleBesoin(key, b === 1 ? 2 : b === 2 ? 0 : 1);
+    } else if (mode === "dispo") {
+      const dispo = cache.dispos.some(x => x.permanent_id === person.id && x.date === key);
+      const badge = document.createElement("span"); badge.className = "badge";
+      badge.textContent = dispo ? "Dispo" : "Indispo";
+      if (!dispo) cell.classList.add("dispo-off");
+      cell.appendChild(badge);
+      cell.onclick = () => toggleDispo(person, key);
+    } else if (mode === "resultat") {
+      const b = cache.besoins[key] === undefined ? 1 : cache.besoins[key];
+      if (b === 0) { cell.classList.add("ferme"); const bd = document.createElement("span"); bd.className = "badge"; bd.textContent = "Fermé"; cell.appendChild(bd); }
+      else if (lastRes && lastRes.solutions[lastRes.alt] && lastRes.solutions[lastRes.alt].assign[key]) {
+        const nm = document.createElement("span"); nm.className = "names";
+        nm.textContent = lastRes.solutions[lastRes.alt].assign[key].join(", ");
+        cell.appendChild(nm);
       }
     }
-    await refresh();
-  } catch (e) { showMsg(msg, "Erreur : " + e.message, true); }
+    container.appendChild(cell);
+  });
 }
 
-// ====== Vue admin ======
-function renderAdminCalendar() {
-  const counts = {};
-  for (const d of cache.dispos) {
-    counts[d.date] = (counts[d.date] || 0) + 1;
-  }
-  const el = document.getElementById("adminCalendar");
-  let html = monthNavHtml("admin");
-  html += calendarGrid("admin", null, iso => counts[iso] ? "dispo" : "", iso => counts[iso] ? counts[iso] + " dispo" : "");
-  el.innerHTML = html;
-}
-
-function renderAllDispos() {
-  const filter = document.getElementById("filterDate").value;
-  const nameOf = id => (cache.users.find(u => u.id === id) || { nom: "?" }).nom;
-  let rows = cache.dispos.slice();
-  if (filter) rows = rows.filter(d => d.date === filter);
-  rows.sort((a, b) => a.date.localeCompare(b.date) || nameOf(a.permanent_id).localeCompare(nameOf(b.permanent_id)));
-  const el = document.getElementById("allDisposTable");
-  if (!rows.length) { el.innerHTML = '<p class="muted">Aucune disponibilité.</p>'; return; }
-  let html = "<table><tr><th>Date</th><th>Permanent</th><th></th></tr>";
-  for (const d of rows) {
-    html += `<tr><td>${esc(d.date)}</td><td>${esc(nameOf(d.permanent_id))}</td>
-      <td><button class="danger" onclick="deleteDispo('${esc(d.id)}')">Supprimer</button></td></tr>`;
-  }
-  el.innerHTML = html + "</table>";
-}
-
-async function deleteDispo(id) {
-  if (!confirm("Supprimer cette disponibilité ?")) return;
+async function toggleBesoin(date, valeur) {
   try {
     if (sb) {
-      const res = await sb.from("dispos").delete().eq("id", id);
+      const res = await sb.from("besoins").upsert({ date, valeur }, { onConflict: "date" });
       if (res.error) throw new Error(res.error.message);
     } else {
-      cache.dispos = cache.dispos.filter(d => d.id !== id);
+      cache.besoins[date] = valeur;
       saveLocal();
     }
     refresh();
   } catch (e) { alert("Erreur : " + e.message); }
 }
 
-function renderUsers() {
-  const el = document.getElementById("usersTable");
-  let html = "<table><tr><th>Nom</th><th>Rôle</th></tr><tr><td>admin</td><td><span class='badge ok'>admin</span></td></tr>";
-  for (const u of cache.users) {
-    html += `<tr><td>${esc(u.nom)}</td><td>${u.admin ? '<span class="badge ok">admin</span>' : '<span class="badge no">permanent</span>'}</td></tr>`;
+async function toggleDispo(person, date) {
+  try {
+    const has = cache.dispos.some(x => x.permanent_id === person.id && x.date === date);
+    if (has) {
+      if (sb) {
+        const res = await sb.from("dispos").delete().eq("permanent_id", person.id).eq("date", date);
+        if (res.error) throw new Error(res.error.message);
+      } else {
+        cache.dispos = cache.dispos.filter(x => !(x.permanent_id === person.id && x.date === date));
+        saveLocal();
+      }
+    } else {
+      if (sb) {
+        const res = await sb.from("dispos").insert({ permanent_id: person.id, date, creneau: "Journée", dispo: true, commentaire: "" });
+        if (res.error) throw new Error(res.error.message);
+      } else {
+        cache.dispos.push({ id: uid(), permanent_id: person.id, date, creneau: "Journée", dispo: true, commentaire: "" });
+        saveLocal();
+      }
+    }
+    refresh();
+  } catch (e) { alert("Erreur : " + e.message); }
+}
+
+// ====== Contraintes ======
+function renderContraintes() {
+  const lc = document.getElementById("listeContraintes");
+  lc.innerHTML = "";
+  cache.users.forEach((p, i) => {
+    const row = document.createElement("div"); row.className = "ligne";
+    row.innerHTML = `<span class="nom">${esc(p.nom)}</span>
+      <label><input type="checkbox" ${p.no_we ? "checked" : ""} data-i="${i}" data-k="no_we"> Pas de week-end</label>
+      <label><input type="checkbox" ${p.only_we ? "checked" : ""} data-i="${i}" data-k="only_we"> Uniquement week-end</label>
+      <label><input type="checkbox" ${p.min_we ? "checked" : ""} data-i="${i}" data-k="min_we"> Au moins 1 week-end</label>
+      <label><input type="checkbox" ${p.paired ? "checked" : ""} data-i="${i}" data-k="paired"> 2 jours consécutifs</label>
+      <label>Max dans le mois <input type="number" min="0" max="31" value="${p.max_days || 0}" data-i="${i}" data-k="max_days" style="width:50px"> j.</label>
+      <button class="secondaire" data-del="${i}">Supprimer</button>`;
+    if (p.commentaire) {
+      const c = document.createElement("div");
+      c.style.cssText = "width:100%;font-size:13px;color:#666";
+      c.textContent = "Commentaire : " + p.commentaire;
+      row.appendChild(c);
+    }
+    lc.appendChild(row);
+  });
+  lc.querySelectorAll("input").forEach(inp => inp.onchange = () => {
+    const p = cache.users[inp.dataset.i];
+    const k = inp.dataset.k;
+    const val = k === "max_days" ? (parseInt(inp.value, 10) || 0) : inp.checked;
+    saveContrainte(p, k, val);
+  });
+  lc.querySelectorAll("[data-del]").forEach(b => b.onclick = async () => {
+    const p = cache.users[parseInt(b.dataset.del, 10)];
+    if (!confirm("Supprimer " + p.nom + " et toutes ses disponibilités ?")) return;
+    try {
+      if (sb) {
+        const r = await sb.from("dispos").delete().eq("permanent_id", p.id);
+        const r2 = await sb.from("permanents").delete().eq("id", p.id);
+        if (r.error || r2.error) throw new Error((r.error || r2.error).message);
+      } else {
+        cache.dispos = cache.dispos.filter(x => x.permanent_id !== p.id);
+        cache.users = cache.users.filter(x => x.id !== p.id);
+        saveLocal();
+      }
+      state.dispoTab = 0;
+      refresh();
+    } catch (e) { alert("Erreur : " + e.message); }
+  });
+}
+async function saveContrainte(p, key, val) {
+  try {
+    if (sb) {
+      const res = await sb.from("permanents").update({ [key]: val }).eq("id", p.id);
+      if (res.error) throw new Error(res.error.message);
+    } else {
+      p[key] = val;
+      saveLocal();
+    }
+  } catch (e) { alert("Erreur : " + e.message); }
+}
+
+// ====== Solveur ======
+function solve(ym, maxAlt) {
+  const days = daysOfMonth(ym);
+  const n = days.length;
+  const besoin = k => cache.besoins[k] === undefined ? 1 : cache.besoins[k];
+  const open = [];
+  for (let i = 0; i < n; i++) if (besoin(iso(days[i])) !== 0) open.push(i);
+  const need = i => besoin(iso(days[i]));
+  const personnes = cache.users.filter(p => p.id !== ADMIN_ID);
+  const P = personnes.length;
+  if (!P || !open.length) return { err: "Ajoutez au moins un permanent et un jour ouvert." };
+
+  const elig = personnes.map(p => {
+    const e = [];
+    for (let i = 0; i < n; i++) {
+      if (need(i) === 0) continue;
+      if (!cache.dispos.some(x => x.permanent_id === p.id && x.date === iso(days[i]))) continue;
+      const we = days[i].getDay() >= 6;
+      if (p.no_we && we) continue;
+      if (p.only_we && !we) continue;
+      e.push(i);
+    }
+    return e;
+  });
+  for (let pi = 0; pi < P; pi++) {
+    if (!elig[pi].length) return { err: personnes[pi].nom + " n'a aucun jour disponible compatible avec ses contraintes." };
   }
-  el.innerHTML = html + "</table>";
+  for (const i of open) {
+    if (elig.filter(e => e.includes(i)).length < need(i))
+      return { err: "Pas assez de permanents disponibles le " + days[i].toLocaleDateString("fr-FR") + "." };
+  }
+
+  const totalSlots = open.reduce((s, i) => s + need(i), 0);
+  const load = new Array(P).fill(0);
+  const weLoad = new Array(P).fill(0);
+  const assign = {};
+  const solutions = [];
+  let bestSpread = Infinity;
+  const maxCap = () => Math.ceil(totalSlots / P) + Math.max(1, Math.min(3, bestSpread));
+
+  function combos(arr, k, start, cur, out) {
+    if (cur.length === k) { out.push(cur.slice()); return; }
+    for (let i = start; i <= arr.length - (k - cur.length); i++) {
+      cur.push(arr[i]); combos(arr, k, i + 1, cur, out); cur.pop();
+    }
+  }
+  function hasAssign(i) { return assign[iso(days[i])] && assign[iso(days[i])].length; }
+  function checkPaired(pIdx) {
+    if (!personnes[pIdx].paired) return true;
+    for (const i of open) {
+      if (!hasAssign(i) || !assign[iso(days[i])].includes(pIdx)) continue;
+      const left = open.includes(i - 1) && hasAssign(i - 1) && assign[iso(days[i - 1])].includes(pIdx);
+      const right = open.includes(i + 1) && hasAssign(i + 1) && assign[iso(days[i + 1])].includes(pIdx);
+      if (!left && !right) return false;
+    }
+    return true;
+  }
+  function rec(k) {
+    if (solutions.length >= maxAlt) return;
+    if (k === open.length) {
+      for (let p = 0; p < P; p++) {
+        if (load[p] < 1) return;
+        if (personnes[p].min_we && weLoad[p] < 1) return;
+        if (personnes[p].max_days > 0 && load[p] > personnes[p].max_days) return;
+        if (!checkPaired(p)) return;
+      }
+      const spread = Math.max(...load) - Math.min(...load);
+      const ws = Math.max(...weLoad) - Math.min(...weLoad);
+      bestSpread = Math.min(bestSpread, spread);
+      solutions.push({ assign: JSON.parse(JSON.stringify(assign)), load: load.slice(), weLoad: weLoad.slice(), score: 100 * spread + ws });
+      return;
+    }
+    const di = open[k];
+    const d = days[di];
+    const cand = [];
+    for (let p = 0; p < P; p++) if (elig[p].includes(di)) cand.push(p);
+    cand.sort((a, b) => load[a] - load[b]);
+    const cs = [];
+    combos(cand, need(di), 0, [], cs);
+    for (const c of cs) {
+      const cap = maxCap();
+      if (c.some(p => load[p] + 1 > cap)) continue;
+      if (c.some(p => personnes[p].max_days > 0 && load[p] + 1 > personnes[p].max_days)) continue;
+      for (const p of c) { load[p]++; if (d.getDay() >= 6) weLoad[p]++; }
+      assign[iso(d)] = c.map(p => personnes[p].nom);
+      let ok = true;
+      for (let p = 0; p < P; p++) {
+        if (load[p] > 0) continue;
+        if (!elig[p].some(x => open.indexOf(x) > k)) { ok = false; break; }
+      }
+      if (ok) rec(k + 1);
+      for (const p of c) { load[p]--; if (d.getDay() >= 6) weLoad[p]--; }
+      assign[iso(d)] = undefined;
+    }
+  }
+  rec(0);
+  if (!solutions.length) return { err: "Aucune solution : les contraintes sont incompatibles. Assouplissez une contrainte ou ajoutez des disponibilités." };
+  solutions.sort((a, b) => a.score - b.score);
+  return { solutions, personnes };
 }
 
-// ====== Export / import ======
-function csvCell(v) { return '"' + String(v ?? "").replace(/"/g, '""') + '"'; }
-function exportCSV() {
-  const nameOf = id => (cache.users.find(u => u.id === id) || { nom: "?" }).nom;
-  const lines = [["Date", "Permanent", "Disponible"]];
-  const rows = cache.dispos.slice().sort((a, b) => a.date.localeCompare(b.date));
-  for (const d of rows) lines.push([d.date, nameOf(d.permanent_id), d.dispo ? "Oui" : "Non"]);
-  const csv = "\uFEFF" + lines.map(l => l.map(csvCell).join(";")).join("\r\n");
-  downloadBlob(new Blob([csv], { type: "text/csv;charset=utf-8" }), "planning-permanence.csv");
+function generate() {
+  const res = solve(state.mois, parseInt(document.getElementById("nbAlt").value, 10) || 3);
+  const zone = document.getElementById("zoneResultat");
+  if (res.err) {
+    zone.innerHTML = `<div class="msg err">${esc(res.err)}</div>`;
+    document.getElementById("zoneExport").style.display = "none";
+    return;
+  }
+  lastRes = { ...res, alt: 0, mois: state.mois };
+  let html = `<div class="msg ok">${res.solutions.length} solution(s) trouvée(s), triées de la plus équitable à la moins équitable.</div>`;
+  html += `<div class="alt-btns">` + res.solutions.map((s, i) =>
+    `<button data-alt="${i}" class="${i === 0 ? "active" : ""}">Solution ${i + 1}</button>`).join("") + `</div>`;
+  html += `<div class="cal" id="calRes"></div><table id="tabStats"></table>`;
+  zone.innerHTML = html;
+  document.getElementById("zoneExport").style.display = "";
+  const showAlt = i => {
+    lastRes.alt = i;
+    renderCal(document.getElementById("calRes"), daysOfMonth(state.mois), "resultat");
+    document.getElementById("tabStats").innerHTML = "<tr><th>Permanent</th><th>Jours</th><th>Week-ends</th></tr>" +
+      res.personnes.map((p, pi) => `<tr><td>${esc(p.nom)}</td><td>${res.solutions[i].load[pi]}</td><td>${res.solutions[i].weLoad[pi]}</td></tr>`).join("");
+    zone.querySelectorAll(".alt-btns button").forEach((b, bi) => b.classList.toggle("active", bi === i));
+  };
+  zone.querySelectorAll(".alt-btns button").forEach(b => b.onclick = () => showAlt(parseInt(b.dataset.alt, 10)));
+  showAlt(0);
+  showTab("resultat");
 }
 
-function exportJSON() {
-  const data = { users: cache.users.map(u => ({ nom: u.nom, admin: !!u.admin })), dispos: cache.dispos };
-  downloadBlob(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }), "sauvegarde-planning.json");
-}
-
-function downloadBlob(blob, filename) {
+// ====== Export ======
+function download(nom, contenu, type) {
   const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = filename;
+  a.href = URL.createObjectURL(new Blob([contenu], { type }));
+  a.download = nom;
   a.click();
   URL.revokeObjectURL(a.href);
 }
-
-async function importJSON(input) {
-  if (!currentUser.admin) return;
-  const file = input.files[0];
-  if (!file) return;
-  try {
-    const data = JSON.parse(await file.text());
-    if (sb) {
-      alert("En mode partagé, la restauration se fait directement dans Supabase (import CSV). Ce fichier JSON sert d'archive.");
-      return;
-    }
-    if (Array.isArray(data.users)) {
-      for (const u of data.users) {
-        if (!cache.users.some(x => x.nom === u.nom)) cache.users.push({ ...u, id: uid(), mdp_hash: "", salt: "" });
-      }
-    }
-    if (Array.isArray(data.dispos)) cache.dispos.push(...data.dispos);
-    saveLocal();
-    refresh();
-    alert("Sauvegarde importée.");
-  } catch (e) { alert("Fichier invalide : " + e.message); }
-  input.value = "";
+function exportCSV() {
+  if (!lastRes) return;
+  const s = lastRes.solutions[lastRes.alt];
+  let csv = "date,jour_semaine,statut,permanence\n";
+  daysOfMonth(lastRes.mois).forEach(d => {
+    const b = cache.besoins[iso(d)] === undefined ? 1 : cache.besoins[iso(d)];
+    if (b === 0) csv += `${iso(d)},${d.toLocaleDateString("fr-FR", { weekday: "long" })},ferme,\n`;
+    else csv += `${iso(d)},${d.toLocaleDateString("fr-FR", { weekday: "long" })},ouvert,"${s.assign[iso(d)] ? s.assign[iso(d)].join("; ") : ""}"\n`;
+  });
+  download(`planning_${lastRes.mois}.csv`, csv, "text/csv");
+}
+function exportJSON() {
+  if (!lastRes) return;
+  const s = lastRes.solutions[lastRes.alt];
+  const data = {
+    mois: lastRes.mois,
+    jours: daysOfMonth(lastRes.mois).map(d => ({
+      date: iso(d),
+      statut: (cache.besoins[iso(d)] === 0) ? "ferme" : "ouvert",
+      permanence: s.assign[iso(d)] || []
+    })),
+    suivi: lastRes.personnes.map((p, i) => ({ nom: p.nom, jours: s.load[i], weekends: s.weLoad[i] }))
+  };
+  download(`planning_${lastRes.mois}.json`, JSON.stringify(data, null, 2), "application/json");
 }
 
-// ====== Démarrage ======
-document.getElementById("modeBadge").textContent = sb ? "Mode partagé (Supabase)" : "Mode local (ce navigateur)";
+// ====== Événements ======
+document.querySelectorAll("#navTabs button").forEach(b => b.onclick = () => showTab(b.dataset.tab));
+document.getElementById("mois").onchange = e => { state.mois = e.target.value; refresh(); };
+document.getElementById("btnLogin").onclick = doLogin;
+document.getElementById("btnRegister").onclick = doRegister;
+document.getElementById("lnkRegister").onclick = e => { e.preventDefault();
+  document.querySelector(".auth").style.display = "none"; document.getElementById("registerBox").style.display = ""; };
+document.getElementById("lnkLogin").onclick = e => { e.preventDefault();
+  document.getElementById("registerBox").style.display = "none"; document.querySelector(".auth").style.display = ""; };
+document.getElementById("btnLogout").onclick = logout;
+document.getElementById("btnGen").onclick = generate;
+document.getElementById("btnCsv").onclick = exportCSV;
+document.getElementById("btnJson").onclick = exportJSON;
+document.getElementById("btnPrint").onclick = () => window.print();
+document.getElementById("txtCom").oninput = async e => {
+  const adm = !!currentUser.admin;
+  const list = adm ? cache.users : [currentUser];
+  const p = list[state.dispoTab] || list[0];
+  if (!p) return;
+  try {
+    if (sb) {
+      const res = await sb.from("permanents").update({ commentaire: e.target.value }).eq("id", p.id);
+      if (res.error) throw new Error(res.error.message);
+    } else {
+      p.commentaire = e.target.value;
+      saveLocal();
+    }
+  } catch (err) { alert("Erreur : " + err.message); }
+};
+
+document.getElementById("modeBadge").textContent = "Mode " + MODE;
 (async () => { if (!await tryRestoreSession()) loadLocal(); })();
 </script>
 </body>
