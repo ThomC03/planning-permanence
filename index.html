@@ -111,8 +111,8 @@
     <h2>Créer mon identifiant</h2>
     <div id="registerMsg" class="msg"></div>
     <div class="champ"><label>Nom (unique, gardez-le)</label><input type="text" id="regName"></div>
-    <div class="champ"><label>Mot de passe (4 caractères min.)</label><input type="password" id="regPass"></div>
-    <div class="champ"><label>Confirmer le mot de passe</label><input type="password" id="regPass2"></div>
+    <div class="champ"><label>Mot de passe (2 chiffres, ex. 47)</label><input type="password" id="regPass" inputmode="numeric" maxlength="2" pattern="[0-9]{2}"></div>
+    <div class="champ"><label>Confirmer le mot de passe</label><input type="password" id="regPass2" inputmode="numeric" maxlength="2" pattern="[0-9]{2}"></div>
     <button class="action" id="btnRegister">Créer mon compte</button>
     <p class="hint"><a href="#" id="lnkLogin">← Retour à la connexion</a></p>
   </div>
@@ -294,7 +294,7 @@ async function doRegister() {
   const msg = document.getElementById("registerMsg");
   if (nom.toLowerCase() === ADMIN_NOM) return showMsg(msg, "Ce nom est réservé.", true);
   if (nom.length < 2) return showMsg(msg, "Le nom doit contenir au moins 2 caractères.", true);
-  if (p1.length < 4) return showMsg(msg, "Le mot de passe doit contenir au moins 4 caractères.", true);
+  if (!/^\d{2}$/.test(p1)) return showMsg(msg, "Le mot de passe doit être composé de 2 chiffres.", true);
   if (p1 !== p2) return showMsg(msg, "Les deux mots de passe ne correspondent pas.", true);
   try {
     if (await findUserByName(nom)) return showMsg(msg, "Ce nom est déjà pris.", true);
@@ -587,8 +587,8 @@ function renderContraintes() {
   });
   lc.querySelectorAll("[data-pass]").forEach(b => b.onclick = async () => {
     const p = cache.users[parseInt(b.dataset.pass, 10)];
-    const pass = prompt("Nouveau mot de passe pour " + p.nom + " (4 caractères min.) :", "");
-    if (!pass || pass.length < 4) { if (pass !== null) alert("Le mot de passe doit contenir au moins 4 caractères."); return; }
+    const pass = prompt("Nouveau mot de passe pour " + p.nom + " (2 chiffres) :", "");
+    if (!/^\d{2}$/.test(pass)) { if (pass !== null) alert("Le mot de passe doit être composé de 2 chiffres."); return; }
     const salt = randomSalt();
     const hash = await hashPassword(pass, salt);
     await updateCompte(p, { mdp_hash: hash, salt });
