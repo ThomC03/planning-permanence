@@ -16,6 +16,7 @@
   nav button { border: none; background: none; padding: 10px 14px; cursor: pointer; font-size: 14px; color: #555; border-bottom: 2px solid transparent; }
   nav button.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
   main { padding: 20px; max-width: 980px; margin: 0 auto; }
+  footer { text-align: center; font-size: 12px; color: #aaa; padding: 16px 0 24px; }
   .panel { display: none; }
   .panel.active { display: block; }
   .cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-top: 12px; }
@@ -40,9 +41,11 @@
   .ligne { display: flex; align-items: center; gap: 14px; padding: 10px 0; border-bottom: 1px solid var(--bord); flex-wrap: wrap; }
   .ligne .nom { width: 140px; font-weight: 600; }
   .ligne label { font-size: 14px; display: flex; gap: 5px; align-items: center; }
+  .ligne .btns { display: flex; gap: 6px; flex-wrap: wrap; }
   button.action { background: var(--accent); color: #fff; border: none; border-radius: 4px; padding: 9px 18px; font-size: 14px; cursor: pointer; }
   button.action:hover { filter: brightness(1.1); }
   button.secondaire { background: #fff; border: 1px solid var(--bord); border-radius: 4px; padding: 8px 14px; cursor: pointer; font-size: 14px; }
+  button.secondaire.warn { color: var(--ferme); }
   .alt-btns { display: flex; gap: 6px; margin: 12px 0; flex-wrap: wrap; }
   .alt-btns button { border: 1px solid var(--bord); background: #fff; border-radius: 4px; padding: 5px 12px; cursor: pointer; }
   .alt-btns button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
@@ -54,7 +57,7 @@
   .msg.ok { background: #eaf5ea; color: var(--ok); border: 1px solid #c8e6c9; display: block; }
   .barre { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
   input[type=month], input[type=text], input[type=password], input[type=number], textarea, select {
-    padding: 7px 10px; border: 1px solid var(--bord); border-radius: 4px; font-size: 14px; font-family: inherit; }
+    padding: 7px 10px; border: 1px solid var(--bord); border-radius: 4px; font-size: 14px; font-family: inherit; max-width: 100%; }
   textarea { width: 100%; min-height: 70px; margin-top: 10px; }
   .commentaire { margin-top: 14px; max-width: 600px; }
   .commentaire label { font-size: 13px; color: #666; }
@@ -65,19 +68,27 @@
   .auth input { width: 100%; }
   .auth button { width: 100%; }
   .hint { font-size: 12px; color: #999; margin-top: 10px; }
-  @media print {
-    header, nav, .barre, .alt-btns, .legend, button { display: none !important; }
-    body { background: #fff; }
-    .panel { display: none !important; }
-    #panel-resultat { display: block !important; }
+  .verrou { display: inline-block; font-size: 13px; padding: 4px 12px; border-radius: 12px; background: #fdeeea; color: var(--ferme); font-weight: 600; }
+  .pdf-zone { position: fixed; left: -9999px; top: 0; background: #fff; padding: 20px; }
+  .pdf-zone img.logo { max-height: 90px; display: block; margin: 0 auto 14px; }
+  @media (max-width: 640px) {
+    header, nav { padding-left: 10px; padding-right: 10px; }
+    header h1 { font-size: 16px; margin-right: 6px; }
+    main { padding: 12px 10px; }
+    .cell { min-height: 44px; padding: 2px 3px; font-size: 11px; }
+    .cell .badge { font-size: 10px; padding: 0 5px; margin-top: 2px; }
+    .cell .names { font-size: 10px; }
+    .ligne .nom { width: 100%; }
+    table { font-size: 12px; }
+    th, td { padding: 4px 6px; }
   }
 </style>
 </head>
 <body>
 <header>
   <h1>📅 Planning de permanence</h1>
-  <label id="lblMois">Mois : <input type="month" id="mois"></label>
-  <span id="zoneAdmin">
+  <label id="lblMois" style="display:none">Mois : <input type="month" id="mois"></label>
+  <span id="zoneAdmin" style="display:none">
     <label>Alternatives : <input type="number" id="nbAlt" value="3" min="1" max="10" style="width:60px"></label>
     <button class="action" id="btnGen">Générer le planning</button>
   </span>
@@ -100,8 +111,8 @@
     <h2>Créer mon identifiant</h2>
     <div id="registerMsg" class="msg"></div>
     <div class="champ"><label>Nom (unique, gardez-le)</label><input type="text" id="regName"></div>
-    <div class="champ"><label>Mot de passe (4 caractères min.)</label><input type="password" id="regPass"></div>
-    <div class="champ"><label>Confirmer le mot de passe</label><input type="password" id="regPass2"></div>
+    <div class="champ"><label>Mot de passe (2 chiffres, ex. 47)</label><input type="password" id="regPass" inputmode="numeric" maxlength="2" pattern="[0-9]{2}"></div>
+    <div class="champ"><label>Confirmer le mot de passe</label><input type="password" id="regPass2" inputmode="numeric" maxlength="2" pattern="[0-9]{2}"></div>
     <button class="action" id="btnRegister">Créer mon compte</button>
     <p class="hint"><a href="#" id="lnkLogin">← Retour à la connexion</a></p>
   </div>
@@ -113,6 +124,7 @@
     <button data-tab="dispos" id="tabDispos" class="active">Disponibilités</button>
     <button data-tab="contraintes" id="tabContraintes">Contraintes</button>
     <button data-tab="resultat" id="tabResultat">Résultat</button>
+    <button data-tab="planning" id="tabPlanning">Planning</button>
   </nav>
   <main>
     <div class="panel" id="panel-boutique">
@@ -121,6 +133,7 @@
     </div>
     <div class="panel active" id="panel-dispos">
       <div id="dispoIntro"></div>
+      <div class="barre" id="zoneVerrou"></div>
       <div class="pers-tabs" id="dispoTabs"></div>
       <div class="cal" id="calDispo"></div>
       <div class="commentaire" id="zoneCom" style="display:none">
@@ -129,24 +142,41 @@
       </div>
     </div>
     <div class="panel" id="panel-contraintes">
-      <p class="legend">Contraintes prises en compte par le générateur de planning.</p>
+      <p class="legend">Contraintes prises en compte par le générateur, et administration des comptes.</p>
       <div id="listeContraintes"></div>
     </div>
     <div class="panel" id="panel-resultat">
-      <div class="barre" id="zoneExport" style="display:none">
-        <button class="secondaire" id="btnCsv">Exporter CSV</button>
-        <button class="secondaire" id="btnJson">Exporter JSON</button>
-        <button class="secondaire" id="btnPrint">Imprimer / PDF</button>
+      <div class="barre" id="zoneSave" style="display:none">
+        <button class="action" id="btnSavePlanning">💾 Enregistrer ce planning</button>
+        <span class="legend" id="saveHint"></span>
       </div>
       <div id="zoneResultat"><p class="legend">Générez le planning (bouton en haut) pour voir le résultat.</p></div>
+    </div>
+    <div class="panel" id="panel-planning">
+      <div class="barre">
+        <label>Mois planifié : <select id="selPlanning"></select></label>
+        <button class="secondaire" id="btnPdf">📄 Exporter en PDF</button>
+        <button class="secondaire" id="btnRegen" style="display:none">🔄 Régénérer ce planning</button>
+      </div>
+      <div id="planningInfo" class="legend"></div>
+      <div class="cal" id="calPlanning"></div>
     </div>
   </main>
 </div>
 
+<footer id="versionTag">TC2</footer>
+
+<div class="pdf-zone" id="pdfZone"></div>
+
 <script src="config.js"></script>
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script>
 "use strict";
+
+// ====== Version ======
+const VERSION = "TC2";
 
 // ====== Compte admin intégré ======
 const ADMIN_NOM = "admin";
@@ -163,8 +193,8 @@ const LS_SESSION = "planning_permanence_session";
 const DOW = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
 
 let currentUser = null;
-let cache = { users: [], dispos: [], besoins: {} };
-let state = { mois: new Date().toISOString().slice(0, 7), dispoTab: 0 };
+let cache = { users: [], dispos: [], besoins: {}, plannings: {}, verrous: [] };
+let state = { mois: new Date().toISOString().slice(0, 7), dispoTab: 0, planningMois: null };
 let lastRes = null;
 
 // ====== Utilitaires ======
@@ -189,29 +219,43 @@ function daysOfMonth(ym) {
   while (d.getFullYear() === y && d.getMonth() === m - 1) { days.push(new Date(d)); d = new Date(y, m - 1, d.getDate() + 1); }
   return days;
 }
+function moisLabel(ym) {
+  const [y, m] = ym.split("-").map(Number);
+  return new Date(y, m - 1, 1).toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+}
 
 // ====== Stockage ======
 function loadLocal() {
   try {
     const s = JSON.parse(localStorage.getItem(LS_DATA));
-    if (s) { cache.users = s.users || []; cache.dispos = s.dispos || []; cache.besoins = s.besoins || {}; }
+    if (s) {
+      cache.users = s.users || []; cache.dispos = s.dispos || [];
+      cache.besoins = s.besoins || {}; cache.plannings = s.plannings || {};
+      cache.verrous = s.verrous || [];
+    }
   } catch (e) {}
 }
 function saveLocal() {
-  localStorage.setItem(LS_DATA, JSON.stringify({ users: cache.users, dispos: cache.dispos, besoins: cache.besoins }));
+  localStorage.setItem(LS_DATA, JSON.stringify(cache));
 }
 async function loadAll() {
   if (sb) {
-    const [u, d, b] = await Promise.all([
+    const [u, d, b, p, v] = await Promise.all([
       sb.from("permanents").select("id, nom, admin, no_we, only_we, min_we, paired, max_days, commentaire"),
       sb.from("dispos").select("id, permanent_id, date, creneau, dispo, commentaire"),
-      sb.from("besoins").select("date, valeur")
+      sb.from("besoins").select("date, valeur"),
+      sb.from("plannings").select("mois, contenu, updated_at"),
+      sb.from("verrous").select("permanent_id, mois")
     ]);
-    if (u.error || d.error || b.error) { alert("Erreur de lecture : " + (u.error || d.error || b.error).message); return; }
+    const err = u.error || d.error || b.error || p.error || v.error;
+    if (err) { alert("Erreur de lecture : " + err.message); return; }
     cache.users = u.data;
     cache.dispos = d.data;
     cache.besoins = {};
     for (const r of b.data) cache.besoins[r.date] = r.valeur;
+    cache.plannings = {};
+    for (const r of p.data) cache.plannings[r.mois] = r.contenu;
+    cache.verrous = v.data;
   } else {
     loadLocal();
   }
@@ -250,7 +294,7 @@ async function doRegister() {
   const msg = document.getElementById("registerMsg");
   if (nom.toLowerCase() === ADMIN_NOM) return showMsg(msg, "Ce nom est réservé.", true);
   if (nom.length < 2) return showMsg(msg, "Le nom doit contenir au moins 2 caractères.", true);
-  if (p1.length < 4) return showMsg(msg, "Le mot de passe doit contenir au moins 4 caractères.", true);
+  if (!/^\d{2}$/.test(p1)) return showMsg(msg, "Le mot de passe doit être composé de 2 chiffres.", true);
   if (p1 !== p2) return showMsg(msg, "Les deux mots de passe ne correspondent pas.", true);
   try {
     if (await findUserByName(nom)) return showMsg(msg, "Ce nom est déjà pris.", true);
@@ -301,10 +345,13 @@ function enterApp() {
   document.getElementById("btnLogout").style.display = "";
   document.getElementById("userBadge").textContent = currentUser.nom + (currentUser.admin ? " (admin)" : "");
   const adm = !!currentUser.admin;
+  document.getElementById("lblMois").style.display = "";
   document.getElementById("zoneAdmin").style.display = adm ? "" : "none";
   document.getElementById("tabBoutique").style.display = adm ? "" : "none";
   document.getElementById("tabContraintes").style.display = adm ? "" : "none";
   document.getElementById("tabResultat").style.display = adm ? "" : "none";
+  document.getElementById("tabPlanning").style.display = "";
+  document.getElementById("btnRegen").style.display = adm ? "" : "none";
   document.getElementById("mois").value = state.mois;
   showTab("dispos");
   refresh();
@@ -318,6 +365,7 @@ async function refresh() {
   const adm = !!currentUser.admin;
   const days = daysOfMonth(state.mois);
   if (adm) renderCal(document.getElementById("calBoutique"), days, "boutique");
+
   const list = adm ? cache.users.filter(u => u.id !== ADMIN_ID) : [currentUser];
   const tabs = document.getElementById("dispoTabs");
   tabs.innerHTML = "";
@@ -335,11 +383,32 @@ async function refresh() {
     tabs.appendChild(b);
   });
   const who = list[state.dispoTab] || list[0];
+  const verrouZone = document.getElementById("zoneVerrou");
+  verrouZone.innerHTML = "";
   document.getElementById("dispoIntro").innerHTML = adm
     ? '<p class="legend">Sélectionnez un permanent puis cliquez sur ses jours <b>disponibles</b> (par défaut : aucun).</p>'
-    : '<p class="legend">Cliquez sur vos jours <b>disponibles</b> (par défaut : aucun jour disponible). Un second clic annule.</p>';
+    : '<p class="legend">Cliquez sur vos jours <b>disponibles</b> pour ' + esc(moisLabel(state.mois)) + ' (par défaut : aucun). Un second clic annule.</p>';
   if (who) {
-    renderCal(document.getElementById("calDispo"), days, "dispo", who);
+    const locked = isLocked(who.id, state.mois);
+    if (!adm) {
+      if (locked) {
+        const s = document.createElement("span");
+        s.className = "verrou";
+        s.textContent = "🔒 Disponibilités verrouillées pour " + moisLabel(state.mois);
+        verrouZone.appendChild(s);
+      } else {
+        const b = document.createElement("button");
+        b.className = "secondaire";
+        b.textContent = "🔒 Verrouiller mes disponibilités de " + moisLabel(state.mois);
+        b.onclick = () => lockMonth(currentUser.id, state.mois);
+        verrouZone.appendChild(b);
+        const h = document.createElement("span");
+        h.className = "legend";
+        h.textContent = "Une fois verrouillé, vous ne pourrez plus modifier ce mois.";
+        verrouZone.appendChild(h);
+      }
+    }
+    renderCal(document.getElementById("calDispo"), days, "dispo", who, locked && !adm);
     document.getElementById("zoneCom").style.display = "";
     const txt = document.getElementById("txtCom");
     if (document.activeElement !== txt) txt.value = who.commentaire || "";
@@ -349,10 +418,38 @@ async function refresh() {
     document.getElementById("zoneCom").style.display = "none";
   }
   if (adm) renderContraintes();
+  renderPlanningTab();
+}
+
+// ====== Verrous ======
+function isLocked(personId, mois) {
+  return cache.verrous.some(v => v.permanent_id === personId && v.mois === mois);
+}
+async function lockMonth(personId, mois) {
+  if (!confirm("Verrouiller définitivement vos disponibilités de " + moisLabel(mois) + " ? Vous ne pourrez plus les modifier (seul l'admin le peut).")) return;
+  await setLock(personId, mois, true);
+}
+async function setLock(personId, mois, locked) {
+  try {
+    if (sb) {
+      if (locked) {
+        const res = await sb.from("verrous").upsert({ permanent_id: personId, mois }, { onConflict: "permanent_id,mois" });
+        if (res.error) throw new Error(res.error.message);
+      } else {
+        const res = await sb.from("verrous").delete().eq("permanent_id", personId).eq("mois", mois);
+        if (res.error) throw new Error(res.error.message);
+      }
+    } else {
+      if (locked) cache.verrous.push({ permanent_id: personId, mois });
+      else cache.verrous = cache.verrous.filter(v => !(v.permanent_id === personId && v.mois === mois));
+      saveLocal();
+    }
+    refresh();
+  } catch (e) { alert("Erreur : " + e.message); }
 }
 
 // ====== Calendrier ======
-function renderCal(container, days, mode, person) {
+function renderCal(container, days, mode, person, locked) {
   container.innerHTML = "";
   DOW.forEach(w => { const e = document.createElement("div"); e.className = "dow"; e.textContent = w; container.appendChild(e); });
   const first = (days[0].getDay() + 6) % 7;
@@ -380,15 +477,33 @@ function renderCal(container, days, mode, person) {
       badge.textContent = dispo ? "Dispo" : "Indispo";
       if (!dispo) cell.classList.add("dispo-off");
       cell.appendChild(badge);
-      cell.onclick = () => toggleDispo(person, key);
-    } else if (mode === "resultat") {
-      const b = cache.besoins[key] === undefined ? 1 : cache.besoins[key];
-      if (b === 0) { cell.classList.add("ferme"); const bd = document.createElement("span"); bd.className = "badge"; bd.textContent = "Fermé"; cell.appendChild(bd); }
-      else if (lastRes && lastRes.solutions[lastRes.alt] && lastRes.solutions[lastRes.alt].assign[key]) {
-        const nm = document.createElement("span"); nm.className = "names";
-        nm.textContent = lastRes.solutions[lastRes.alt].assign[key].join(", ");
-        cell.appendChild(nm);
-      }
+      if (locked) { cell.style.cursor = "not-allowed"; cell.onclick = null; }
+      else cell.onclick = () => toggleDispo(person, key);
+    }
+    container.appendChild(cell);
+  });
+}
+function renderPlanningCal(container, days, assign) {
+  container.innerHTML = "";
+  DOW.forEach(w => { const e = document.createElement("div"); e.className = "dow"; e.textContent = w; container.appendChild(e); });
+  const first = (days[0].getDay() + 6) % 7;
+  for (let i = 0; i < first; i++) { const e = document.createElement("div"); e.className = "cell off"; container.appendChild(e); }
+  days.forEach(d => {
+    const cell = document.createElement("div");
+    cell.className = "cell";
+    if (d.getDay() >= 6) cell.classList.add("weekend");
+    const num = document.createElement("span"); num.className = "num"; num.textContent = d.getDate();
+    cell.appendChild(num);
+    const key = iso(d);
+    const b = cache.besoins[key] === undefined ? 1 : cache.besoins[key];
+    if (b === 0) {
+      cell.classList.add("ferme");
+      const bd = document.createElement("span"); bd.className = "badge"; bd.textContent = "Fermé";
+      cell.appendChild(bd);
+    } else if (assign && assign[key]) {
+      const nm = document.createElement("span"); nm.className = "names";
+      nm.textContent = assign[key].join(", ");
+      cell.appendChild(nm);
     }
     container.appendChild(cell);
   });
@@ -408,6 +523,7 @@ async function toggleBesoin(date, valeur) {
 }
 
 async function toggleDispo(person, date) {
+  if (!currentUser.admin && isLocked(person.id, date.slice(0, 7))) return;
   try {
     const has = cache.dispos.some(x => x.permanent_id === person.id && x.date === date);
     if (has) {
@@ -431,7 +547,7 @@ async function toggleDispo(person, date) {
   } catch (e) { alert("Erreur : " + e.message); }
 }
 
-// ====== Contraintes ======
+// ====== Contraintes & administration des comptes ======
 function renderContraintes() {
   const lc = document.getElementById("listeContraintes");
   lc.innerHTML = "";
@@ -442,8 +558,13 @@ function renderContraintes() {
       <label><input type="checkbox" ${p.only_we ? "checked" : ""} data-i="${i}" data-k="only_we"> Uniquement week-end</label>
       <label><input type="checkbox" ${p.min_we ? "checked" : ""} data-i="${i}" data-k="min_we"> Au moins 1 week-end</label>
       <label><input type="checkbox" ${p.paired ? "checked" : ""} data-i="${i}" data-k="paired"> 2 jours consécutifs</label>
-      <label>Max dans le mois <input type="number" min="0" max="31" value="${p.max_days || 0}" data-i="${i}" data-k="max_days" style="width:50px"> j.</label>
-      <button class="secondaire" data-del="${i}">Supprimer</button>`;
+      <label>Max/mois <input type="number" min="0" max="31" value="${p.max_days || 0}" data-i="${i}" data-k="max_days" style="width:50px"> j.</label>
+      <span class="btns">
+        <button class="secondaire" data-rename="${i}">✏️ Renommer</button>
+        <button class="secondaire" data-pass="${i}">🔑 Mot de passe</button>
+        <button class="secondaire" data-lock="${i}">${isLocked(p.id, state.mois) ? "🔓 Déverrouiller" : "🔒 Verrouiller"}</button>
+        <button class="secondaire warn" data-del="${i}">🗑 Supprimer</button>
+      </span>`;
     if (p.commentaire) {
       const c = document.createElement("div");
       c.style.cssText = "width:100%;font-size:13px;color:#666";
@@ -458,6 +579,25 @@ function renderContraintes() {
     const val = k === "max_days" ? (parseInt(inp.value, 10) || 0) : inp.checked;
     saveContrainte(p, k, val);
   });
+  lc.querySelectorAll("[data-rename]").forEach(b => b.onclick = async () => {
+    const p = cache.users[parseInt(b.dataset.rename, 10)];
+    const nom = prompt("Nouveau nom pour " + p.nom + " :", p.nom);
+    if (!nom || nom.trim() === p.nom) return;
+    await updateCompte(p, { nom: nom.trim() });
+  });
+  lc.querySelectorAll("[data-pass]").forEach(b => b.onclick = async () => {
+    const p = cache.users[parseInt(b.dataset.pass, 10)];
+    const pass = prompt("Nouveau mot de passe pour " + p.nom + " (2 chiffres) :", "");
+    if (!/^\d{2}$/.test(pass)) { if (pass !== null) alert("Le mot de passe doit être composé de 2 chiffres."); return; }
+    const salt = randomSalt();
+    const hash = await hashPassword(pass, salt);
+    await updateCompte(p, { mdp_hash: hash, salt });
+    alert("Mot de passe de " + p.nom + " mis à jour.");
+  });
+  lc.querySelectorAll("[data-lock]").forEach(b => b.onclick = () => {
+    const p = cache.users[parseInt(b.dataset.lock, 10)];
+    setLock(p.id, state.mois, !isLocked(p.id, state.mois));
+  });
   lc.querySelectorAll("[data-del]").forEach(b => b.onclick = async () => {
     const p = cache.users[parseInt(b.dataset.del, 10)];
     if (!confirm("Supprimer " + p.nom + " et toutes ses disponibilités ?")) return;
@@ -468,6 +608,7 @@ function renderContraintes() {
         if (r.error || r2.error) throw new Error((r.error || r2.error).message);
       } else {
         cache.dispos = cache.dispos.filter(x => x.permanent_id !== p.id);
+        cache.verrous = cache.verrous.filter(x => x.permanent_id !== p.id);
         cache.users = cache.users.filter(x => x.id !== p.id);
         saveLocal();
       }
@@ -477,14 +618,18 @@ function renderContraintes() {
   });
 }
 async function saveContrainte(p, key, val) {
+  await updateCompte(p, { [key]: val });
+}
+async function updateCompte(p, fields) {
   try {
     if (sb) {
-      const res = await sb.from("permanents").update({ [key]: val }).eq("id", p.id);
+      const res = await sb.from("permanents").update(fields).eq("id", p.id);
       if (res.error) throw new Error(res.error.message);
     } else {
-      p[key] = val;
+      Object.assign(p, fields);
       saveLocal();
     }
+    refresh();
   } catch (e) { alert("Erreur : " + e.message); }
 }
 
@@ -525,8 +670,7 @@ function solve(ym, maxAlt) {
   const weLoad = new Array(P).fill(0);
   const assign = {};
   const solutions = [];
-  let bestSpread = Infinity;
-  const maxCap = () => Math.ceil(totalSlots / P) + Math.max(1, Math.min(3, bestSpread));
+  let cap = 0;
 
   function combos(arr, k, start, cur, out) {
     if (cur.length === k) { out.push(cur.slice()); return; }
@@ -537,10 +681,12 @@ function solve(ym, maxAlt) {
   function hasAssign(i) { return assign[iso(days[i])] && assign[iso(days[i])].length; }
   function checkPaired(pIdx) {
     if (!personnes[pIdx].paired) return true;
+    const nom = personnes[pIdx].nom;
+    const estLa = i => hasAssign(i) && assign[iso(days[i])].includes(nom);
     for (const i of open) {
-      if (!hasAssign(i) || !assign[iso(days[i])].includes(pIdx)) continue;
-      const left = open.includes(i - 1) && hasAssign(i - 1) && assign[iso(days[i - 1])].includes(pIdx);
-      const right = open.includes(i + 1) && hasAssign(i + 1) && assign[iso(days[i + 1])].includes(pIdx);
+      if (!estLa(i)) continue;
+      const left = i > 0 && estLa(i - 1);
+      const right = i < n - 1 && estLa(i + 1);
       if (!left && !right) return false;
     }
     return true;
@@ -556,7 +702,6 @@ function solve(ym, maxAlt) {
       }
       const spread = Math.max(...load) - Math.min(...load);
       const ws = Math.max(...weLoad) - Math.min(...weLoad);
-      bestSpread = Math.min(bestSpread, spread);
       solutions.push({ assign: JSON.parse(JSON.stringify(assign)), load: load.slice(), weLoad: weLoad.slice(), score: 100 * spread + ws });
       return;
     }
@@ -568,7 +713,6 @@ function solve(ym, maxAlt) {
     const cs = [];
     combos(cand, need(di), 0, [], cs);
     for (const c of cs) {
-      const cap = maxCap();
       if (c.some(p => load[p] + 1 > cap)) continue;
       if (c.some(p => personnes[p].max_days > 0 && load[p] + 1 > personnes[p].max_days)) continue;
       for (const p of c) { load[p]++; if (d.getDay() >= 6) weLoad[p]++; }
@@ -583,7 +727,14 @@ function solve(ym, maxAlt) {
       assign[iso(d)] = undefined;
     }
   }
-  rec(0);
+  const baseCap = Math.ceil(totalSlots / P);
+  for (let slack = 0; slack <= 3; slack++) {
+    cap = baseCap + slack;
+    load.fill(0); weLoad.fill(0);
+    for (const k of Object.keys(assign)) assign[k] = undefined;
+    rec(0);
+    if (solutions.length) break;
+  }
   if (!solutions.length) return { err: "Aucune solution : les contraintes sont incompatibles. Assouplissez une contrainte ou ajoutez des disponibilités." };
   solutions.sort((a, b) => a.score - b.score);
   return { solutions, personnes };
@@ -594,7 +745,7 @@ function generate() {
   const zone = document.getElementById("zoneResultat");
   if (res.err) {
     zone.innerHTML = `<div class="msg err">${esc(res.err)}</div>`;
-    document.getElementById("zoneExport").style.display = "none";
+    document.getElementById("zoneSave").style.display = "none";
     return;
   }
   lastRes = { ...res, alt: 0, mois: state.mois };
@@ -603,10 +754,13 @@ function generate() {
     `<button data-alt="${i}" class="${i === 0 ? "active" : ""}">Solution ${i + 1}</button>`).join("") + `</div>`;
   html += `<div class="cal" id="calRes"></div><table id="tabStats"></table>`;
   zone.innerHTML = html;
-  document.getElementById("zoneExport").style.display = "";
+  document.getElementById("zoneSave").style.display = "";
+  document.getElementById("saveHint").textContent = cache.plannings[state.mois]
+    ? "Un planning est déjà enregistré pour ce mois : l'enregistrement le remplacera."
+    : "";
   const showAlt = i => {
     lastRes.alt = i;
-    renderCal(document.getElementById("calRes"), daysOfMonth(state.mois), "resultat");
+    renderPlanningCal(document.getElementById("calRes"), daysOfMonth(state.mois), res.solutions[i].assign);
     document.getElementById("tabStats").innerHTML = "<tr><th>Permanent</th><th>Jours</th><th>Week-ends</th></tr>" +
       res.personnes.map((p, pi) => `<tr><td>${esc(p.nom)}</td><td>${res.solutions[i].load[pi]}</td><td>${res.solutions[i].weLoad[pi]}</td></tr>`).join("");
     zone.querySelectorAll(".alt-btns button").forEach((b, bi) => b.classList.toggle("active", bi === i));
@@ -616,38 +770,86 @@ function generate() {
   showTab("resultat");
 }
 
-// ====== Export ======
-function download(nom, contenu, type) {
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(new Blob([contenu], { type }));
-  a.download = nom;
-  a.click();
-  URL.revokeObjectURL(a.href);
-}
-function exportCSV() {
+// ====== Plannings persistants ======
+async function savePlanning() {
   if (!lastRes) return;
-  const s = lastRes.solutions[lastRes.alt];
-  let csv = "date,jour_semaine,statut,permanence\n";
-  daysOfMonth(lastRes.mois).forEach(d => {
-    const b = cache.besoins[iso(d)] === undefined ? 1 : cache.besoins[iso(d)];
-    if (b === 0) csv += `${iso(d)},${d.toLocaleDateString("fr-FR", { weekday: "long" })},ferme,\n`;
-    else csv += `${iso(d)},${d.toLocaleDateString("fr-FR", { weekday: "long" })},ouvert,"${s.assign[iso(d)] ? s.assign[iso(d)].join("; ") : ""}"\n`;
-  });
-  download(`planning_${lastRes.mois}.csv`, csv, "text/csv");
-}
-function exportJSON() {
-  if (!lastRes) return;
-  const s = lastRes.solutions[lastRes.alt];
-  const data = {
-    mois: lastRes.mois,
-    jours: daysOfMonth(lastRes.mois).map(d => ({
-      date: iso(d),
-      statut: (cache.besoins[iso(d)] === 0) ? "ferme" : "ouvert",
-      permanence: s.assign[iso(d)] || []
-    })),
-    suivi: lastRes.personnes.map((p, i) => ({ nom: p.nom, jours: s.load[i], weekends: s.weLoad[i] }))
+  const sol = lastRes.solutions[lastRes.alt];
+  const contenu = {
+    assign: sol.assign,
+    suivi: lastRes.personnes.map((p, i) => ({ nom: p.nom, jours: sol.load[i], weekends: sol.weLoad[i] }))
   };
-  download(`planning_${lastRes.mois}.json`, JSON.stringify(data, null, 2), "application/json");
+  try {
+    if (sb) {
+      const res = await sb.from("plannings").upsert({ mois: lastRes.mois, contenu }, { onConflict: "mois" });
+      if (res.error) throw new Error(res.error.message);
+    } else {
+      cache.plannings[lastRes.mois] = contenu;
+      saveLocal();
+    }
+    state.planningMois = lastRes.mois;
+    await refresh();
+    showTab("planning");
+    alert("Planning de " + moisLabel(lastRes.mois) + " enregistré ✔");
+  } catch (e) { alert("Erreur : " + e.message); }
+}
+
+function renderPlanningTab() {
+  const sel = document.getElementById("selPlanning");
+  const moisList = Object.keys(cache.plannings).sort();
+  const prev = state.planningMois;
+  sel.innerHTML = "";
+  if (!moisList.length) {
+    sel.innerHTML = "<option value=''>—</option>";
+    document.getElementById("calPlanning").innerHTML = "";
+    document.getElementById("planningInfo").textContent = "Aucun planning enregistré pour l'instant.";
+    return;
+  }
+  moisList.forEach(m => {
+    const o = document.createElement("option");
+    o.value = m;
+    o.textContent = moisLabel(m);
+    sel.appendChild(o);
+  });
+  if (!prev || !moisList.includes(prev)) state.planningMois = moisList.includes(state.mois) ? state.mois : moisList[moisList.length - 1];
+  sel.value = state.planningMois;
+  const contenu = cache.plannings[state.planningMois];
+  renderPlanningCal(document.getElementById("calPlanning"), daysOfMonth(state.planningMois), contenu.assign);
+  document.getElementById("planningInfo").textContent =
+    "Planning officiel de " + moisLabel(state.planningMois) + " — lecture seule.";
+}
+
+// ====== Export PDF ======
+async function exportPDF() {
+  if (!state.planningMois || !cache.plannings[state.planningMois]) return;
+  const ym = state.planningMois;
+  const zone = document.getElementById("pdfZone");
+  zone.innerHTML = "";
+  const logo = document.createElement("img");
+  logo.className = "logo";
+  logo.src = "logo.png";
+  zone.appendChild(logo);
+  const cal = document.createElement("div");
+  cal.className = "cal";
+  zone.appendChild(cal);
+  renderPlanningCal(cal, daysOfMonth(ym), cache.plannings[ym].assign);
+  await new Promise(r => {
+    let done = false;
+    logo.onload = () => { if (!done) { done = true; r(); } };
+    logo.onerror = () => { if (!done) { done = true; logo.remove(); r(); } };
+    setTimeout(() => { if (!done) { done = true; r(); } }, 1500);
+  });
+  try {
+    const canvas = await html2canvas(zone, { scale: 2, backgroundColor: "#ffffff" });
+    const pdf = new jspdf.jsPDF({ orientation: "landscape", unit: "pt", format: "a4" });
+    const pw = pdf.internal.pageSize.getWidth();
+    const ph = pdf.internal.pageSize.getHeight();
+    const ratio = Math.min((pw - 40) / canvas.width, (ph - 40) / canvas.height);
+    const w = canvas.width * ratio;
+    const h = canvas.height * ratio;
+    pdf.addImage(canvas.toDataURL("image/png"), "PNG", (pw - w) / 2, (ph - h) / 2, w, h);
+    pdf.save("planning_" + ym + ".pdf");
+  } catch (e) { alert("Erreur PDF : " + e.message); }
+  zone.innerHTML = "";
 }
 
 // ====== Événements ======
@@ -661,14 +863,23 @@ document.getElementById("lnkLogin").onclick = e => { e.preventDefault();
   document.getElementById("registerBox").style.display = "none"; document.querySelector(".auth").style.display = ""; };
 document.getElementById("btnLogout").onclick = logout;
 document.getElementById("btnGen").onclick = generate;
-document.getElementById("btnCsv").onclick = exportCSV;
-document.getElementById("btnJson").onclick = exportJSON;
-document.getElementById("btnPrint").onclick = () => window.print();
+document.getElementById("btnSavePlanning").onclick = savePlanning;
+document.getElementById("btnPdf").onclick = exportPDF;
+document.getElementById("btnRegen").onclick = () => {
+  if (!state.planningMois) return;
+  state.mois = state.planningMois;
+  document.getElementById("mois").value = state.mois;
+  generate();
+};
+document.getElementById("selPlanning").onchange = e => {
+  state.planningMois = e.target.value;
+  renderPlanningTab();
+};
 document.getElementById("txtCom").oninput = async e => {
   const adm = !!currentUser.admin;
   const list = adm ? cache.users : [currentUser];
   const p = list[state.dispoTab] || list[0];
-  if (!p) return;
+  if (!p || e.target.readOnly) return;
   try {
     if (sb) {
       const res = await sb.from("permanents").update({ commentaire: e.target.value }).eq("id", p.id);
@@ -681,6 +892,7 @@ document.getElementById("txtCom").oninput = async e => {
 };
 
 document.getElementById("modeBadge").textContent = "Mode " + MODE;
+document.getElementById("versionTag").textContent = VERSION;
 (async () => { if (!await tryRestoreSession()) loadLocal(); })();
 </script>
 </body>
