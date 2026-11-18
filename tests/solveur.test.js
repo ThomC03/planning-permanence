@@ -109,3 +109,9 @@ cache.dispos = cache.dispos.filter(d => d.permanent_id === "u1");
 const res2 = solve(ym, 3);
 if (!res2.err) { console.error("Devrait échouer (1 personne, jour à 2)"); process.exit(1); }
 console.log("✔ Détection d'impossibilité OK :", res2.err);
+
+// Test : tous les jours marqués fermés → erreur explicite, aucune affectation
+for (let d = 1; d <= nbDays; d++) cache.besoins[ym + "-" + String(d).padStart(2, "0")] = 0;
+const res3 = solve(ym, 3);
+if (!res3.err || !/ferm/i.test(res3.err)) { console.error("Devrait échouer avec un message 'fermés' :", res3.err || res3.solutions.length); process.exit(1); }
+console.log("✔ Tous les jours fermés → message clair OK :", res3.err);

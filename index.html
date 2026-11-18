@@ -25,13 +25,14 @@
   .cell:hover { border-color: var(--accent); }
   .cell .num { font-weight: 600; }
   .cell .badge { display: inline-block; margin-top: 4px; padding: 1px 8px; border-radius: 10px; font-size: 12px; background: #e8f0e8; color: var(--ok); }
-  .cell.deux .badge { background: #fdeee0; color: var(--deux); }
+  .cell.deux .badge.besoin { background: #fdeee0; color: var(--deux); }
   .cell.ferme { background: #f5e9e7; }
-  .cell.ferme .badge { background: var(--ferme); color: #fff; }
+  .cell.ferme .badge.besoin { background: var(--ferme); color: #fff; }
+  .badge.besoin { background: #eef2f7; color: #555; margin-left: 4px; }
   .cell.weekend { background: #f2f4f7; }
   .cell.off { visibility: hidden; cursor: default; }
   .cell.dispo-off { background: #eee; color: #999; }
-  .cell.dispo-off .badge { background: #ddd; color: #777; }
+  .cell.dispo-off .badge:not(.besoin) { background: #ddd; color: #777; }
   .cell .names { display: block; font-size: 12px; margin-top: 2px; color: var(--accent); }
   .cell.today { outline: 2px solid var(--accent); outline-offset: -2px; }
   .legend { font-size: 13px; color: #666; margin-top: 10px; }
@@ -56,6 +57,9 @@
   .msg.err { background: #fdecea; color: var(--ferme); border: 1px solid #f5c6c0; display: block; }
   .msg.ok { background: #eaf5ea; color: var(--ok); border: 1px solid #c8e6c9; display: block; }
   .barre { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
+  .moisNav { display: inline-flex; gap: 4px; align-items: center; }
+  .moisNav .mini { padding: 4px 10px; }
+  .moisNav .moisLabel { font-weight: 600; min-width: 140px; }
   input[type=month], input[type=text], input[type=password], input[type=number], textarea, select {
     padding: 7px 10px; border: 1px solid var(--bord); border-radius: 4px; font-size: 14px; font-family: inherit; max-width: 100%; }
   textarea { width: 100%; min-height: 70px; margin-top: 10px; }
@@ -87,7 +91,13 @@
 <body>
 <header>
   <h1>📅 Planning de permanence</h1>
-  <label id="lblMois" style="display:none">Mois : <input type="month" id="mois"></label>
+  <span id="lblMois" class="moisNav" style="display:none">
+    <button type="button" class="secondaire mini" id="btnMoisPrev" title="Mois précédent">‹</button>
+    <button type="button" class="secondaire moisLabel" id="btnMoisLabel" title="Choisir un mois précis"></button>
+    <button type="button" class="secondaire mini" id="btnMoisNext" title="Mois suivant">›</button>
+    <button type="button" class="secondaire mini" id="btnMoisToday">Aujourd'hui</button>
+    <input type="month" id="mois" style="display:none">
+  </span>
   <span id="zoneAdmin" style="display:none">
     <label>Alternatives : <input type="number" id="nbAlt" value="3" min="1" max="10" style="width:60px"></label>
     <button class="action" id="btnGen">Générer le planning</button>
@@ -157,6 +167,7 @@
         <label>Mois planifié : <select id="selPlanning"></select></label>
         <button class="secondaire" id="btnPdf">📄 Exporter en PDF</button>
         <button class="secondaire" id="btnRegen" style="display:none">🔄 Régénérer ce planning</button>
+        <button class="secondaire warn" id="btnDelPlanning" style="display:none">🗑 Supprimer ce planning</button>
       </div>
       <div id="planningInfo" class="legend"></div>
       <div class="cal" id="calPlanning"></div>
@@ -193,8 +204,8 @@ const LS_SESSION = "planning_permanence_session";
 const DOW = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
 
 let currentUser = null;
-let cache = { users: [], dispos: [], besoins: {}, plannings: {}, verrous: [] };
-let state = { mois: new Date().toISOString().slice(0, 7), dispoTab: 0, planningMois: null };
+let cache = { users: [], dispos: [], besoins: {}, plannings: {}, planningDates: {}, verrous: [] };
+let state = { mois: new Date().toISOString().slice(0, 7), dispoTab: 0, planningMois: null, dispoEdit: false };
 let lastRes = null;
 
 // ====== Utilitaires ======
@@ -223,6 +234,11 @@ function moisLabel(ym) {
   const [y, m] = ym.split("-").map(Number);
   return new Date(y, m - 1, 1).toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
 }
+function shiftMonth(ym, delta) {
+  const [y, m] = ym.split("-").map(Number);
+  const d = new Date(y, m - 1 + delta, 1);
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0");
+}
 
 // ====== Stockage ======
 function loadLocal() {
@@ -231,6 +247,7 @@ function loadLocal() {
     if (s) {
       cache.users = s.users || []; cache.dispos = s.dispos || [];
       cache.besoins = s.besoins || {}; cache.plannings = s.plannings || {};
+      cache.planningDates = s.planningDates || {};
       cache.verrous = s.verrous || [];
     }
   } catch (e) {}
@@ -254,7 +271,8 @@ async function loadAll() {
     cache.besoins = {};
     for (const r of b.data) cache.besoins[r.date] = r.valeur;
     cache.plannings = {};
-    for (const r of p.data) cache.plannings[r.mois] = r.contenu;
+    cache.planningDates = {};
+    for (const r of p.data) { cache.plannings[r.mois] = r.contenu; cache.planningDates[r.mois] = r.updated_at; }
     cache.verrous = v.data;
   } else {
     loadLocal();
@@ -364,6 +382,7 @@ async function refresh() {
   await loadAll();
   const adm = !!currentUser.admin;
   const days = daysOfMonth(state.mois);
+  document.getElementById("btnMoisLabel").textContent = moisLabel(state.mois);
   if (adm) renderCal(document.getElementById("calBoutique"), days, "boutique");
 
   const list = adm ? cache.users.filter(u => u.id !== ADMIN_ID) : [currentUser];
@@ -379,14 +398,14 @@ async function refresh() {
     const b = document.createElement("button");
     b.textContent = p.nom;
     if (i === state.dispoTab) b.classList.add("active");
-    b.onclick = () => { state.dispoTab = i; refresh(); };
+    b.onclick = () => { state.dispoTab = i; state.dispoEdit = false; refresh(); };
     tabs.appendChild(b);
   });
   const who = list[state.dispoTab] || list[0];
   const verrouZone = document.getElementById("zoneVerrou");
   verrouZone.innerHTML = "";
   document.getElementById("dispoIntro").innerHTML = adm
-    ? '<p class="legend">Sélectionnez un permanent puis cliquez sur ses jours <b>disponibles</b> (par défaut : aucun).</p>'
+    ? '<p class="legend">Disponibilités de <b>' + esc(who ? who.nom : "") + '</b> pour ' + esc(moisLabel(state.mois)) + '.</p>'
     : '<p class="legend">Cliquez sur vos jours <b>disponibles</b> pour ' + esc(moisLabel(state.mois)) + ' (par défaut : aucun). Un second clic annule.</p>';
   if (who) {
     const locked = isLocked(who.id, state.mois);
@@ -407,8 +426,24 @@ async function refresh() {
         h.textContent = "Une fois verrouillé, vous ne pourrez plus modifier ce mois.";
         verrouZone.appendChild(h);
       }
+    } else {
+      const bEdit = document.createElement("button");
+      bEdit.className = "secondaire";
+      bEdit.textContent = state.dispoEdit ? "🔒 Quitter le mode édition" : "✏️ Modifier les dispos de " + who.nom;
+      bEdit.onclick = () => {
+        if (!state.dispoEdit && !confirm("Activer le mode édition sur les disponibilités de " + who.nom + " pour " + moisLabel(state.mois) + " ?\nChaque clic sur un jour modifiera ses disponibilités.")) return;
+        state.dispoEdit = !state.dispoEdit;
+        refresh();
+      };
+      verrouZone.appendChild(bEdit);
+      const h = document.createElement("span");
+      h.className = "legend";
+      h.textContent = state.dispoEdit
+        ? "Mode édition actif : les clics modifient les disponibilités de " + who.nom + "."
+        : "Mode lecture seule (garde-fou anti-misclick) : cliquez sur « Modifier » pour éditer.";
+      verrouZone.appendChild(h);
     }
-    renderCal(document.getElementById("calDispo"), days, "dispo", who, locked && !adm);
+    renderCal(document.getElementById("calDispo"), days, "dispo", who, adm ? !state.dispoEdit : locked);
     document.getElementById("zoneCom").style.display = "";
     const txt = document.getElementById("txtCom");
     if (document.activeElement !== txt) txt.value = who.commentaire || "";
@@ -447,6 +482,28 @@ async function setLock(personId, mois, locked) {
     refresh();
   } catch (e) { alert("Erreur : " + e.message); }
 }
+async function setLockAll(mois, locked) {
+  const users = cache.users.filter(u => u.id !== ADMIN_ID);
+  if (!users.length) return;
+  if (!confirm((locked ? "Verrouiller" : "Déverrouiller") + " les disponibilités de " + users.length + " permanent(s) pour " + moisLabel(mois) + " ?")) return;
+  try {
+    if (sb) {
+      if (locked) {
+        const rows = users.map(u => ({ permanent_id: u.id, mois }));
+        const res = await sb.from("verrous").upsert(rows, { onConflict: "permanent_id,mois" });
+        if (res.error) throw new Error(res.error.message);
+      } else {
+        const res = await sb.from("verrous").delete().eq("mois", mois);
+        if (res.error) throw new Error(res.error.message);
+      }
+    } else {
+      if (locked) for (const u of users) if (!isLocked(u.id, mois)) cache.verrous.push({ permanent_id: u.id, mois });
+      else cache.verrous = cache.verrous.filter(v => v.mois !== mois);
+      saveLocal();
+    }
+    refresh();
+  } catch (e) { alert("Erreur : " + e.message); }
+}
 
 // ====== Calendrier ======
 function renderCal(container, days, mode, person, locked) {
@@ -465,18 +522,24 @@ function renderCal(container, days, mode, person, locked) {
     const key = iso(d);
     if (mode === "boutique") {
       const b = cache.besoins[key] === undefined ? 1 : cache.besoins[key];
-      const badge = document.createElement("span"); badge.className = "badge";
+      const badge = document.createElement("span"); badge.className = "badge besoin";
       if (b === 0) { cell.classList.add("ferme"); badge.textContent = "Fermé"; }
       else if (b === 2) { cell.classList.add("deux"); badge.textContent = "2 pers."; }
       else badge.textContent = "1 pers.";
       cell.appendChild(badge);
       cell.onclick = () => toggleBesoin(key, b === 1 ? 2 : b === 2 ? 0 : 1);
     } else if (mode === "dispo") {
+      const b = cache.besoins[key] === undefined ? 1 : cache.besoins[key];
+      if (b === 0) cell.classList.add("ferme");
+      else if (b === 2) cell.classList.add("deux");
       const dispo = cache.dispos.some(x => x.permanent_id === person.id && x.date === key);
       const badge = document.createElement("span"); badge.className = "badge";
       badge.textContent = dispo ? "Dispo" : "Indispo";
       if (!dispo) cell.classList.add("dispo-off");
       cell.appendChild(badge);
+      const bb = document.createElement("span"); bb.className = "badge besoin";
+      bb.textContent = b === 0 ? "Fermé" : b === 2 ? "2 pers." : "1 pers.";
+      cell.appendChild(bb);
       if (locked) { cell.style.cursor = "not-allowed"; cell.onclick = null; }
       else cell.onclick = () => toggleDispo(person, key);
     }
@@ -498,12 +561,19 @@ function renderPlanningCal(container, days, assign) {
     const b = cache.besoins[key] === undefined ? 1 : cache.besoins[key];
     if (b === 0) {
       cell.classList.add("ferme");
-      const bd = document.createElement("span"); bd.className = "badge"; bd.textContent = "Fermé";
+      const bd = document.createElement("span"); bd.className = "badge besoin"; bd.textContent = "Fermé";
       cell.appendChild(bd);
-    } else if (assign && assign[key]) {
-      const nm = document.createElement("span"); nm.className = "names";
-      nm.textContent = assign[key].join(", ");
-      cell.appendChild(nm);
+    } else {
+      if (b === 2) {
+        cell.classList.add("deux");
+        const bd = document.createElement("span"); bd.className = "badge besoin"; bd.textContent = "2 pers.";
+        cell.appendChild(bd);
+      }
+      if (assign && assign[key]) {
+        const nm = document.createElement("span"); nm.className = "names";
+        nm.textContent = assign[key].join(", ");
+        cell.appendChild(nm);
+      }
     }
     container.appendChild(cell);
   });
@@ -523,7 +593,9 @@ async function toggleBesoin(date, valeur) {
 }
 
 async function toggleDispo(person, date) {
-  if (!currentUser.admin && isLocked(person.id, date.slice(0, 7))) return;
+  const adm = !!currentUser.admin;
+  if (adm && !state.dispoEdit) return;
+  if (!adm && isLocked(person.id, date.slice(0, 7))) return;
   try {
     const has = cache.dispos.some(x => x.permanent_id === person.id && x.date === date);
     if (has) {
@@ -551,9 +623,16 @@ async function toggleDispo(person, date) {
 function renderContraintes() {
   const lc = document.getElementById("listeContraintes");
   lc.innerHTML = "";
+  const barre = document.createElement("div");
+  barre.className = "barre";
+  barre.innerHTML = `<button class="secondaire" id="btnLockAll">🔒 Tout verrouiller (${esc(moisLabel(state.mois))})</button>
+    <button class="secondaire" id="btnUnlockAll">🔓 Tout déverrouiller (${esc(moisLabel(state.mois))})</button>
+    <span class="legend">${cache.users.filter(u => isLocked(u.id, state.mois)).length}/${cache.users.length} permanent(s) verrouillé(s) pour ${esc(moisLabel(state.mois))}.</span>`;
+  lc.appendChild(barre);
   cache.users.forEach((p, i) => {
     const row = document.createElement("div"); row.className = "ligne";
     row.innerHTML = `<span class="nom">${esc(p.nom)}</span>
+      <span class="legend">${isLocked(p.id, state.mois) ? "🔒 verrouillé" : "🔓 ouvert"}</span>
       <label><input type="checkbox" ${p.no_we ? "checked" : ""} data-i="${i}" data-k="no_we"> Pas de week-end</label>
       <label><input type="checkbox" ${p.only_we ? "checked" : ""} data-i="${i}" data-k="only_we"> Uniquement week-end</label>
       <label><input type="checkbox" ${p.min_we ? "checked" : ""} data-i="${i}" data-k="min_we"> Au moins 1 week-end</label>
@@ -600,12 +679,15 @@ function renderContraintes() {
   });
   lc.querySelectorAll("[data-del]").forEach(b => b.onclick = async () => {
     const p = cache.users[parseInt(b.dataset.del, 10)];
-    if (!confirm("Supprimer " + p.nom + " et toutes ses disponibilités ?")) return;
+    const saisie = prompt("Supprimer définitivement le compte de " + p.nom + " ?\nSes disponibilités et ses verrous seront supprimés aussi.\nTapez le nom « " + p.nom + " » pour confirmer :");
+    if (saisie === null) return;
+    if (saisie.trim() !== p.nom) { alert("Nom incorrect : suppression annulée."); return; }
     try {
       if (sb) {
-        const r = await sb.from("dispos").delete().eq("permanent_id", p.id);
         const r2 = await sb.from("permanents").delete().eq("id", p.id);
-        if (r.error || r2.error) throw new Error((r.error || r2.error).message);
+        if (r2.error) throw new Error(r2.error.message);
+        await sb.from("dispos").delete().eq("permanent_id", p.id);
+        await sb.from("verrous").delete().eq("permanent_id", p.id);
       } else {
         cache.dispos = cache.dispos.filter(x => x.permanent_id !== p.id);
         cache.verrous = cache.verrous.filter(x => x.permanent_id !== p.id);
@@ -613,9 +695,12 @@ function renderContraintes() {
         saveLocal();
       }
       state.dispoTab = 0;
+      state.dispoEdit = false;
       refresh();
     } catch (e) { alert("Erreur : " + e.message); }
   });
+  lc.querySelector("#btnLockAll").onclick = () => setLockAll(state.mois, true);
+  lc.querySelector("#btnUnlockAll").onclick = () => setLockAll(state.mois, false);
 }
 async function saveContrainte(p, key, val) {
   await updateCompte(p, { [key]: val });
@@ -643,7 +728,8 @@ function solve(ym, maxAlt) {
   const need = i => besoin(iso(days[i]));
   const personnes = cache.users.filter(p => p.id !== ADMIN_ID);
   const P = personnes.length;
-  if (!P || !open.length) return { err: "Ajoutez au moins un permanent et un jour ouvert." };
+  if (!P) return { err: "Ajoutez au moins un permanent." };
+  if (!open.length) return { err: "Tous les jours de " + ym + " sont marqués fermés : aucune permanence à planifier." };
 
   const elig = personnes.map(p => {
     const e = [];
@@ -749,7 +835,8 @@ function generate() {
     return;
   }
   lastRes = { ...res, alt: 0, mois: state.mois };
-  let html = `<div class="msg ok">${res.solutions.length} solution(s) trouvée(s), triées de la plus équitable à la moins équitable.</div>`;
+  const nbFermes = daysOfMonth(state.mois).filter(d => (cache.besoins[iso(d)] === undefined ? 1 : cache.besoins[iso(d)]) === 0).length;
+  let html = `<div class="msg ok">${res.solutions.length} solution(s) trouvée(s), triées de la plus équitable à la moins équitable.` + (nbFermes ? ` ${nbFermes} jour(s) fermé(s) : aucune permanence ces jours-là.` : "") + `</div>`;
   html += `<div class="alt-btns">` + res.solutions.map((s, i) =>
     `<button data-alt="${i}" class="${i === 0 ? "active" : ""}">Solution ${i + 1}</button>`).join("") + `</div>`;
   html += `<div class="cal" id="calRes"></div><table id="tabStats"></table>`;
@@ -784,6 +871,7 @@ async function savePlanning() {
       if (res.error) throw new Error(res.error.message);
     } else {
       cache.plannings[lastRes.mois] = contenu;
+      cache.planningDates[lastRes.mois] = new Date().toISOString();
       saveLocal();
     }
     state.planningMois = lastRes.mois;
@@ -798,6 +886,7 @@ function renderPlanningTab() {
   const moisList = Object.keys(cache.plannings).sort();
   const prev = state.planningMois;
   sel.innerHTML = "";
+  document.getElementById("btnDelPlanning").style.display = "none";
   if (!moisList.length) {
     sel.innerHTML = "<option value=''>—</option>";
     document.getElementById("calPlanning").innerHTML = "";
@@ -814,8 +903,11 @@ function renderPlanningTab() {
   sel.value = state.planningMois;
   const contenu = cache.plannings[state.planningMois];
   renderPlanningCal(document.getElementById("calPlanning"), daysOfMonth(state.planningMois), contenu.assign);
+  const pub = cache.planningDates[state.planningMois];
   document.getElementById("planningInfo").textContent =
-    "Planning officiel de " + moisLabel(state.planningMois) + " — lecture seule.";
+    "Planning officiel de " + moisLabel(state.planningMois) + " — lecture seule." +
+    (pub ? " Publié le " + new Date(pub).toLocaleString("fr-FR") + "." : "");
+  document.getElementById("btnDelPlanning").style.display = currentUser && currentUser.admin ? "" : "none";
 }
 
 // ====== Export PDF ======
@@ -854,7 +946,33 @@ async function exportPDF() {
 
 // ====== Événements ======
 document.querySelectorAll("#navTabs button").forEach(b => b.onclick = () => showTab(b.dataset.tab));
-document.getElementById("mois").onchange = e => { state.mois = e.target.value; refresh(); };
+function setMois(ym) { state.mois = ym; state.dispoEdit = false; document.getElementById("mois").value = ym; refresh(); }
+document.getElementById("btnMoisPrev").onclick = () => setMois(shiftMonth(state.mois, -1));
+document.getElementById("btnMoisNext").onclick = () => setMois(shiftMonth(state.mois, 1));
+document.getElementById("btnMoisToday").onclick = () => setMois(new Date().toISOString().slice(0, 7));
+document.getElementById("btnMoisLabel").onclick = () => {
+  const i = document.getElementById("mois");
+  i.style.display = i.style.display === "none" ? "" : "none";
+  if (i.style.display !== "none") { try { i.showPicker(); } catch (e) {} }
+};
+document.getElementById("mois").onchange = e => { if (e.target.value) { e.target.style.display = "none"; setMois(e.target.value); } };
+document.getElementById("btnDelPlanning").onclick = async () => {
+  const ym = state.planningMois;
+  if (!ym || !cache.plannings[ym]) return;
+  if (!confirm("Supprimer le planning enregistré de " + moisLabel(ym) + " ? Les permanents ne le verront plus.")) return;
+  try {
+    if (sb) {
+      const res = await sb.from("plannings").delete().eq("mois", ym);
+      if (res.error) throw new Error(res.error.message);
+    } else {
+      delete cache.plannings[ym];
+      delete cache.planningDates[ym];
+      saveLocal();
+    }
+    state.planningMois = null;
+    refresh();
+  } catch (e) { alert("Erreur : " + e.message); }
+};
 document.getElementById("btnLogin").onclick = doLogin;
 document.getElementById("btnRegister").onclick = doRegister;
 document.getElementById("lnkRegister").onclick = e => { e.preventDefault();
